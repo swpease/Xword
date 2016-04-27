@@ -3,5 +3,7 @@
         <file>main.qml</file>
         <file>MainForm.ui.qml</file>
         <file>Utils.js</file>
+        <file>NewXWordWindow.qml</file>
+        <file>NewXWordWindowForm.ui.qml</file>
     </qresource>
 </RCC>

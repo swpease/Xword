@@ -4,6 +4,7 @@
 
 var WHITE = "#ffffff"  // Have replaced with SystemPalette.window
 var BLACK = "#000000"
+var DARKGREY = "#333333"
 var BLUE = "#0000ff"
 var LIGHTBLUE = "#6060ff"
 
@@ -127,7 +128,10 @@ function blackWhite(box) {
     if (symmetric.checked) {
         var maxIndex = (xGrid.columns * xGrid.rows) - 1;
         var symmetricBox = gridRepeater.itemAt(maxIndex - box.constIndex);
-        if (symmetricBox === box) {  // Middle box is its own symmetric partner
+        if (symmetricBox === box || symmetricBox.color == box.color) {  // Middle box is its own symmetric partner
+            // DO I WANT THE SECOND HALF OF THE ABOVE STATEMENT IN HERE, OR JUST LEAVE THE USER TO THEIR OWN DEVICES??
+            // NEED TO FIX THIS -- THE CONDITION IS NOT CORRECT IN CASE YOU ARE USING THE NON-BLACK ONE
+            // NEED TO ACCOUNT FOR THE HIGHLIGHTING DISCREPENCY
             return
         }
         if (symmetricBox.color == BLACK) {
@@ -146,11 +150,11 @@ function autoMove(box) {
       by click, not resetting if a click was made to a new box
       box: the box that currently has focus
       */
-    if (xGrid.autoMoveDirection % 2 === 0) {
+    if (!xGrid.autoMoveDown) {
         if (box.constIndex % xGrid.columns !== (xGrid.columns - 1)) {
             gridRepeater.itemAt(box.constIndex + 1).focus = true;
         }
-    } else if (xGrid.autoMoveDirection % 2 === 1) {
+    } else if (xGrid.autoMoveDown) {
         if (box.constIndex < (xGrid.columns * xGrid.rows) - xGrid.columns) {
             gridRepeater.itemAt(box.constIndex + xGrid.columns).focus = true;
         }

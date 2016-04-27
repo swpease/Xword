@@ -6,6 +6,17 @@ import QtQuick.Layouts 1.1
 import "Utils.js" as Utils
 
 /*
+  https://www.ics.com/files/qtdocs/qml-extending-types.html
+  excerpt:
+  Aliased properties are also useful for allowing external objects
+  to directly modify and access child objects in a component.
+  [...]
+  Obviously, exposing child objects in this manner should be done with care,
+  as it allows external objects to modify them freely.
+  */
+
+
+/*
   Could potentially use aliases in order to split the major would-be Components up,
   but it seems like a hassle for something that won't be re-instantiated ever.
   */
@@ -13,43 +24,31 @@ import "Utils.js" as Utils
 
 ApplicationWindow {
     id: root
+
+    property int extraHeight
+
     visible: true
-//    width: 640  // LOOK INTO IMPLICIT WIDTH AND HEIGHT
-//    height: 480
     title: qsTr("Crossword Maker 5100")
     color: palette.window
     contentItem {
         implicitWidth: gridContainer.width
         implicitHeight: gridContainer.height
+        minimumWidth: 100
+        minimumHeight: 100
     }
-    property int extraHeight: contentItem.implicitHeight
     Component.onCompleted: extraHeight = height - contentItem.implicitHeight
-    onClosing: console.log(extraHeight, height, contentItem.implicitHeight)
-
-    TextField {
-        // This is a dummy object so that I can access the implicit height of
-        // a text field so that I can align the clue numbers (tye: Label{}) with the
-        // clue editing TextFields.
-        visible: false
-        id: dummy
-    }
 
     SystemPalette { id: palette }  // Now can use native coloring schemes.
 
     Text {
+        id: welcomeText
+
         anchors.centerIn: parent
-        text: "Welcome to Scott's amazing crossword puzzle editor!\n\
-Hit (CTRL+N) or go to FILE -> NEW to get started!"
+        text: "Welcome to Scott's amazing crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
+        horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
     }
-
-//    Image {
-//        source: "go-next-200px.png"
-//        width: 25
-//        height: 25
-//    }
-
 
     menuBar: MenuBar {
         Menu {
@@ -97,8 +96,8 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
     Window {
         id: startUp
         visible: false
-        height: root.height / 2
-        width: root.width
+        height: 150
+        width: root.width * 0.7
         maximumHeight: root.height / 2
         maximumWidth: root.width
         color: palette.window
@@ -107,7 +106,13 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
 
         Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
             sequence: StandardKey.Close
-            onActivated: startUp.close()
+            onActivated: {
+                numHigh.value = 0
+                numWide.value = 0
+                numHigh.focus = false
+                numWide.focus = false
+                startUp.close()
+            }
         }
 
         ColumnLayout {
@@ -166,7 +171,8 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
 
                             numHigh.value = 0
                             numWide.value = 0
-                            numHigh.focus = true
+                            numHigh.focus = false
+                            numWide.focus = false
                             startUp.close()
                         }
                     }
@@ -177,7 +183,8 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
                         onClicked: {
                             numHigh.value = 0
                             numWide.value = 0
-                            numHigh.focus = true
+                            numHigh.focus = false
+                            numWide.focus = false
                             startUp.close()
                         }
                     }
@@ -185,7 +192,6 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
             }
         }
     }
-
 
 
     // MAKING THE CLUES FOR THE CROSSWORD
@@ -208,19 +214,29 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
             anchors.fill: parent
             visible: true
 
+            TextField {
+                // This is a dummy object so that I can access the implicit height of
+                // a text field so that I can align the clue numbers (tye: Label{}) with the
+                // clue editing TextFields.
+                visible: false
+                id: dummy
+            }
+
             // TODO: wrap Flickable with a Text Header in an Item{} (same for the other Flickable)
             // Item {id: acrossClues } with Rectangle or Text, then the Flickable anchored below it
 
+            // I could make this its own .qml custom type...
             Flickable {
                 id: acrossColFlick
                 width: clueEditor.width / 2
 //                anchors.top: acrossCluesHeader.bottom
                 Layout.minimumWidth: 200
+                Layout.fillWidth: true
                 contentHeight: acrossCluesCol.height
 
                 Rectangle {
                     id: acrossCluesHeader
-                    width: clueEditor.width / 2
+                    width: acrossColFlick.width
                     height: 40
                     color: "blue"
                     Text {
@@ -329,7 +345,8 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
             columns: gridContainer.cols
             rows: gridContainer.rows
 
-            property int autoMoveDirection
+            property bool autoMoveDown: false
+            property string directionArrow: autoMoveDown ? "↓" : "→" //Put here or in 'box'?
 
             Repeater{
                 id: gridRepeater
@@ -362,6 +379,14 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
                         if (color != Utils.BLACK) {
                         color == palette.window ? color = Utils.LIGHTBLUE : color = palette.window
                         }
+
+                        // TODO... add in a 'dark grey' so you can see which black box has focus.
+
+                        if (!focus || (blackBoxToggle.checked && focus)) {
+                            directionChild.text = ""
+                        } else {
+                            directionChild.text = xGrid.directionArrow
+                        }
                     }
 
                     Keys.onPressed: {
@@ -372,15 +397,25 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
                             Utils.autoMove(box);
                             event.accepted = true;
                         }
-
                         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
-                            letter = "";
+                            if (blackBoxToggle.checked && color == Utils.BLACK) {
+                                Utils.blackWhite(box);
+                                Utils.assignNums(xGrid.rows, xGrid.columns);
+                            } else {
+                                letter = "";
+                                event.accepted = true;
+                            }
+                        }
+                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && color != Utils.BLACK) {
+                            Utils.blackWhite(box);
+                            Utils.assignNums(xGrid.rows, xGrid.columns);
                             event.accepted = true;
                         }
                     }
 
                     Text {
                         id: letterChild
+
                         anchors {
                             centerIn: parent
                             horizontalCenterOffset: parent.width * 0.05
@@ -392,6 +427,7 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
 
                     Text {
                         id: numberChild
+
                         text: parent.number
                         anchors {
                             left: parent.left
@@ -399,7 +435,18 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
                             top: parent.top
                             topMargin: 2
                         }
+                        font.pixelSize: parent.width * 0.25
+                    }
 
+                    Text {
+                        id: directionChild
+
+                        anchors {
+                            right: parent.right
+                            rightMargin: 2
+                            top: parent.top
+                            topMargin: 2
+                        }
                         font.pixelSize: parent.width * 0.25
                     }
 
@@ -409,12 +456,10 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
                         onEntered: { border.color = Utils.BLUE; border.width = 2 }
                         onExited: { border.color = Utils.BLACK; border.width = 1 }
                         onClicked: {
-                            if (!parent.focus) {
-                                xGrid.autoMoveDirection %= 2;
-                            } else {
-                                xGrid.autoMoveDirection += 1;
+                            if (parent.focus && !blackBoxToggle.checked) {
+                                xGrid.autoMoveDown = !xGrid.autoMoveDown
+                                directionChild.text = xGrid.directionArrow
                             }
-
                             parent.focus = true
                             if (blackBoxToggle.checked) {
                                 Utils.blackWhite(parent)
@@ -426,6 +471,5 @@ Hit (CTRL+N) or go to FILE -> NEW to get started!"
             }
         }
     }
-
 }
 
