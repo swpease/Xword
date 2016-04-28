@@ -380,7 +380,16 @@ ApplicationWindow {
                         color == palette.window ? color = Utils.LIGHTBLUE : color = palette.window
                         }
 
-                        // TODO... add in a 'dark grey' so you can see which black box has focus.
+//                        // TODO... add in a 'dark grey' so you can see which black box has focus.
+//                        if (color == Utils.BLACK) {
+//                            if (focus) {
+//                                border.width = 2
+//                                border.color = Utils.LIGHTGREEN
+//                            } else {
+//                                border.width = 1
+//                                border.color = Utils.BLACK
+//                            }
+//                        }
 
                         if (!focus || (blackBoxToggle.checked && focus)) {
                             directionChild.text = ""
@@ -403,8 +412,8 @@ ApplicationWindow {
                                 Utils.assignNums(xGrid.rows, xGrid.columns);
                             } else {
                                 letter = "";
-                                event.accepted = true;
                             }
+                            event.accepted = true
                         }
                         if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && color != Utils.BLACK) {
                             Utils.blackWhite(box);

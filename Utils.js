@@ -5,8 +5,11 @@
 var WHITE = "#ffffff"  // Have replaced with SystemPalette.window
 var BLACK = "#000000"
 var DARKGREY = "#333333"
+var RED = "#aa2222"
+var LIGHTGREEN = "#33ff00"
 var BLUE = "#0000ff"
 var LIGHTBLUE = "#6060ff"
+var BLANK = [BLACK, DARKGREY]
 
 var KEYS = []  // Array of hexidecimal representations of Qt.Key_ 's (see Qt Namespace doc)
 for (var i = 0x41; i <= 0x5a; i++) {
@@ -120,7 +123,9 @@ function blackWhite(box) {
       (i.e. the box that you clicked on while editing black and white boxes)
       */
     if (box.color == BLACK) {
-        box.color = LIGHTBLUE
+        box.color = LIGHTBLUE;
+        box.border.width = 1;
+        box.border.color = BLACK;
     } else {
         box.color = BLACK;
         box.letter = "";
@@ -128,12 +133,10 @@ function blackWhite(box) {
     if (symmetric.checked) {
         var maxIndex = (xGrid.columns * xGrid.rows) - 1;
         var symmetricBox = gridRepeater.itemAt(maxIndex - box.constIndex);
-        if (symmetricBox === box || symmetricBox.color == box.color) {  // Middle box is its own symmetric partner
-            // DO I WANT THE SECOND HALF OF THE ABOVE STATEMENT IN HERE, OR JUST LEAVE THE USER TO THEIR OWN DEVICES??
-            // NEED TO FIX THIS -- THE CONDITION IS NOT CORRECT IN CASE YOU ARE USING THE NON-BLACK ONE
-            // NEED TO ACCOUNT FOR THE HIGHLIGHTING DISCREPENCY
-            return
-        }
+        if (symmetricBox === box || symmetricBox.color == box.color ||
+           (box.color == LIGHTBLUE && symmetricBox.color == palette.window))  // Middle box is its own symmetric partner
+               return
+
         if (symmetricBox.color == BLACK) {
             symmetricBox.color = palette.window
         } else {
