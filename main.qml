@@ -332,24 +332,24 @@ ApplicationWindow {
     // Changing from Window{} to Item{}, commenting out onClosing:
     Item {
         id: gridContainer
+
+        property alias rows: xGrid.rows
+        property alias cols: xGrid.columns
+
         visible: false
         width: 700
         height: 700
-        property int rows
-        property int cols
-
         //onClosing: clueEditor.visible = false
 
         Grid {
             id: xGrid
-            columns: gridContainer.cols
-            rows: gridContainer.rows
 
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→" //Put here or in 'box'?
 
             Repeater{
                 id: gridRepeater
+
                 model: parent.columns * parent.rows
                 onItemAdded: {
                     // Only perform after the grid has been assembled.
@@ -360,14 +360,12 @@ ApplicationWindow {
 
                 Rectangle {
                     id: box
+
                     property int constIndex: index
                     property string number  // Used to pass assigned clue numbers to the Text{id: number} children
-                    // Used as a string instead of an int to be able to pass empty values
                     property string letter
                     property string clue
 
-//                    width: gridContainer.width / xGrid.columns
-//                    height: gridContainer.height / xGrid.rows
                     width: root.width / xGrid.columns
                     height: (root.height - root.extraHeight) / xGrid.rows
                     border{
@@ -376,20 +374,11 @@ ApplicationWindow {
                     }
                     color: palette.window
                     onFocusChanged: {
-                        if (color != Utils.BLACK) {
-                        color == palette.window ? color = Utils.LIGHTBLUE : color = palette.window
+                        if (color != Utils.BLACK && color != Utils.DARKGREY) {
+                            color == palette.window ? color = Utils.LIGHTBLUE : color = palette.window
+                        } else {
+                            color == Utils.BLACK ? color = Utils.DARKGREY : color = Utils.BLACK
                         }
-
-//                        // TODO... add in a 'dark grey' so you can see which black box has focus.
-//                        if (color == Utils.BLACK) {
-//                            if (focus) {
-//                                border.width = 2
-//                                border.color = Utils.LIGHTGREEN
-//                            } else {
-//                                border.width = 1
-//                                border.color = Utils.BLACK
-//                            }
-//                        }
 
                         if (!focus || (blackBoxToggle.checked && focus)) {
                             directionChild.text = ""
@@ -401,13 +390,13 @@ ApplicationWindow {
                     Keys.onPressed: {
                         Utils.keysMove(event, index)
 
-                        if (Utils.KEYS.indexOf(event.key) !== -1 && blackBoxToggle.checked == false && color != Utils.BLACK) {
+                        if (Utils.KEYS.indexOf(event.key) !== -1 && !blackBoxToggle.checked && color != Utils.DARKGREY) {
                             letter = event.text.toUpperCase();
                             Utils.autoMove(box);
                             event.accepted = true;
                         }
                         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
-                            if (blackBoxToggle.checked && color == Utils.BLACK) {
+                            if (blackBoxToggle.checked && color == Utils.DARKGREY) {
                                 Utils.blackWhite(box);
                                 Utils.assignNums(xGrid.rows, xGrid.columns);
                             } else {
@@ -415,7 +404,7 @@ ApplicationWindow {
                             }
                             event.accepted = true
                         }
-                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && color != Utils.BLACK) {
+                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && color != Utils.DARKGREY) {
                             Utils.blackWhite(box);
                             Utils.assignNums(xGrid.rows, xGrid.columns);
                             event.accepted = true;

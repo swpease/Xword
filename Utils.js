@@ -2,14 +2,13 @@
   GLOBAL CONSTANT VARIABLES
   */
 
-var WHITE = "#ffffff"  // Have replaced with SystemPalette.window
 var BLACK = "#000000"
 var DARKGREY = "#333333"
 var RED = "#aa2222"
 var LIGHTGREEN = "#33ff00"
 var BLUE = "#0000ff"
 var LIGHTBLUE = "#6060ff"
-var BLANK = [BLACK, DARKGREY]
+var BLANKSPACE = [BLACK, DARKGREY]  // I *COULD* potentially make a dictionary... but it IS a hassle.
 
 var KEYS = []  // Array of hexidecimal representations of Qt.Key_ 's (see Qt Namespace doc)
 for (var i = 0x41; i <= 0x5a; i++) {
@@ -35,10 +34,10 @@ function numberOfClues() {
         var box = gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).color == BLACK) {
+            if (i < xGrid.columns || (gridRepeater.itemAt(i - xGrid.columns).color == BLACK || gridRepeater.itemAt(i - xGrid.columns).color == DARKGREY)) {
                 downClues += 1;
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).color == BLACK) {
+            if (i % xGrid.columns == 0 || (gridRepeater.itemAt(i - 1).color == BLACK || gridRepeater.itemAt(i - 1).color == DARKGREY)) {
                 acrossClues += 1;
             }
         }
@@ -68,11 +67,11 @@ function collectClueNums() {
         var box = gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).color == BLACK) {
+            if (i < xGrid.columns || (gridRepeater.itemAt(i - xGrid.columns).color == BLACK || gridRepeater.itemAt(i - xGrid.columns).color == DARKGREY)) {
                 downClueNums.push(box.number);
                 //downBoxNums.push(box.constIndex);  // just put i?
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).color == BLACK) {
+            if (i % xGrid.columns == 0 || (gridRepeater.itemAt(i - xGrid.columns).color == BLACK || gridRepeater.itemAt(i - xGrid.columns).color == DARKGREY)) {
                 acrossClueNums.push(box.number);
                 //acrossBoxNums.push(box.constIndex); // just put i?
             }
@@ -92,11 +91,11 @@ function assignNums(rows, cols) {
     for (var i = 0; i < rows * cols; i++) {
         var box = gridRepeater.itemAt(i);
         var color = box.color;
-        if (color == BLACK) {
+        if (color == BLACK || color == DARKGREY) {
             box.number = "";
         }
 
-        if (color != BLACK) {
+        if (color != BLACK && color != DARKGREY) {
             if (box.constIndex < cols || box.constIndex % cols == 0) {
                 box.number = num;  // Does QML do automatic type coercion?? YES
                 num += 1;
@@ -104,7 +103,7 @@ function assignNums(rows, cols) {
                 var boxAbove = gridRepeater.itemAt(i - cols);
                 var boxToLeft = gridRepeater.itemAt(i - 1);
 
-                if (boxAbove.color == BLACK || boxToLeft.color == BLACK) {
+                if (boxAbove.color == BLACK || boxAbove.color == DARKGREY || boxToLeft.color == BLACK || boxToLeft.color == DARKGREY) {
                     box.number = num;
                     num += 1;
                 } else {
@@ -122,18 +121,19 @@ function blackWhite(box) {
       box: the Rectangle{} object that is the parent of the clicked MouseArea{}
       (i.e. the box that you clicked on while editing black and white boxes)
       */
-    if (box.color == BLACK) {
+    if (box.color == DARKGREY) { // or just DARKGREY
         box.color = LIGHTBLUE;
+        // does this do anything, or did I forget to delete it from before?
         box.border.width = 1;
         box.border.color = BLACK;
     } else {
-        box.color = BLACK;
+        box.color = DARKGREY;
         box.letter = "";
     }
     if (symmetric.checked) {
         var maxIndex = (xGrid.columns * xGrid.rows) - 1;
         var symmetricBox = gridRepeater.itemAt(maxIndex - box.constIndex);
-        if (symmetricBox === box || symmetricBox.color == box.color ||
+        if (symmetricBox === box || box.color == DARKGREY && symmetricBox.color == BLACK ||
            (box.color == LIGHTBLUE && symmetricBox.color == palette.window))  // Middle box is its own symmetric partner
                return
 
