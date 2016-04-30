@@ -38,23 +38,11 @@ ApplicationWindow {
     }
     Component.onCompleted: extraHeight = height - contentItem.implicitHeight
 
-    SystemPalette { id: palette }  // Now can use native coloring schemes.
-
-    Text {
-        id: welcomeText
-
-        anchors.centerIn: parent
-        text: "Welcome to Scott's amazing crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
-        horizontalAlignment: Text.AlignHCenter
-        font.pointSize: 24
-        color: palette.windowText
-    }
-
     menuBar: MenuBar {
         Menu {
             title: qsTr("File")
             MenuItem {
-                text: qsTr("&New")
+                text: qsTr("New")
                 shortcut: StandardKey.New
                 onTriggered: {
                     startUp.visible = true;
@@ -66,6 +54,7 @@ ApplicationWindow {
             title: qsTr("Edit")
             MenuItem {
                 text: qsTr("Clues")
+                shortcut: "Ctrl+E"
                 onTriggered: {
                     var numClues = Utils.numberOfClues();
                     acrossCluesRepeater.model = numClues[0];
@@ -79,6 +68,8 @@ ApplicationWindow {
     toolBar: ToolBar {
         RowLayout {
             anchors.fill: parent
+
+            Item { Layout.fillWidth: true }
             CheckBox {
                 id: blackBoxToggle
                 text: qsTr("Edit Blank Spaces")
@@ -86,11 +77,22 @@ ApplicationWindow {
             CheckBox {
                 id: symmetric
                 text: qsTr("Auto-symmetry")
+                checked: true
             }
         }
     }
 
+    SystemPalette { id: palette }  // Now can use native coloring schemes.
 
+    Text {
+        id: welcomeText
+
+        anchors.centerIn: parent
+        text: "Welcome to Scott's amazing crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
+        horizontalAlignment: Text.AlignHCenter
+        font.pointSize: 24
+        color: palette.windowText
+    }
 
     // BRINGS UP A WINDOW FOR CREATING A NEW XWORD PROJECT
     Window {
@@ -201,6 +203,7 @@ ApplicationWindow {
         visible: false
         height: 500
         width: 500
+        color: palette.window
 //        property alias numAcrosses: acrossCluesRepeater.model
 //        property alias numDowns: downCluesRepeater.model
 
@@ -236,9 +239,15 @@ ApplicationWindow {
 
                 Rectangle {
                     id: acrossCluesHeader
+
                     width: acrossColFlick.width
                     height: 40
-                    color: "blue"
+//                    color: "#8888ff"
+                    gradient: Gradient {
+                        GradientStop { position: 1.0; color: palette.window }
+                        GradientStop { position: 0.0; color: "#8888ff" }
+                    }
+
                     Text {
                         anchors.centerIn: parent
                         text: "Across"
@@ -332,9 +341,11 @@ ApplicationWindow {
     // Changing from Window{} to Item{}, commenting out onClosing:
     Item {
         id: gridContainer
+
         visible: false
         width: 700
         height: 700
+
         property int rows
         property int cols
 
