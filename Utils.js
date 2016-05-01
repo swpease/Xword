@@ -2,7 +2,6 @@
   GLOBAL CONSTANT VARIABLES
   */
 
-var WHITE = "#ffffff"  // Have replaced with SystemPalette.window
 var BLACK = "#000000"
 var DARKGREY = "#333333"
 var RED = "#aa2222"
@@ -35,10 +34,10 @@ function numberOfClues() {
         var box = gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).color == BLACK) {
+            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).state == "BLANKSPACE") {
                 downClues += 1;
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).color == BLACK) {
+            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
                 acrossClues += 1;
             }
         }
@@ -58,6 +57,7 @@ function collectClueNums() {
       POSSIBLE MODIFICATION: add in the index of the boxes in separate lists,
       accessible in the same manner.
       */
+
     var acrossClueNums = [];
     var downClueNums = [];
     //var acrossBoxNums = [];  // for if I want to do some fancy stuff later
@@ -68,11 +68,11 @@ function collectClueNums() {
         var box = gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).color == BLACK) {
+            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).state == "BLANKSPACE") {
                 downClueNums.push(box.number);
                 //downBoxNums.push(box.constIndex);  // just put i?
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).color == BLACK) {
+            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
                 acrossClueNums.push(box.number);
                 //acrossBoxNums.push(box.constIndex); // just put i?
             }
@@ -88,23 +88,25 @@ function assignNums(rows, cols) {
       rows: rows in the crossword
       cols: columns in the crossword
       */
+
     var num = 1; // The number to actually assign to the box
+
     for (var i = 0; i < rows * cols; i++) {
         var box = gridRepeater.itemAt(i);
-        var color = box.color;
-        if (color == BLACK) {
+
+        if (box.state == "BLANKSPACE") {
             box.number = "";
         }
 
-        if (color != BLACK) {
-            if (box.constIndex < cols || box.constIndex % cols == 0) {
+        if (box.state == "") {
+            if (box.constIndex < cols || box.constIndex % cols == 0) {  // Could just use i
                 box.number = num;  // Does QML do automatic type coercion?? YES
                 num += 1;
             } else {
                 var boxAbove = gridRepeater.itemAt(i - cols);
                 var boxToLeft = gridRepeater.itemAt(i - 1);
 
-                if (boxAbove.color == BLACK || boxToLeft.color == BLACK) {
+                if (boxAbove.state == "BLANKSPACE" || boxToLeft.state == "BLANKSPACE") {
                     box.number = num;
                     num += 1;
                 } else {
@@ -122,6 +124,7 @@ function blackWhite(box) {
       box: the Rectangle{} object that is the parent of the clicked MouseArea{}
       (i.e. the box that you clicked on while editing black and white boxes)
       */
+<<<<<<< HEAD
     if (box.color == BLACK) {
         box.color = LIGHTBLUE;
         box.border.width = 1;
@@ -143,6 +146,18 @@ function blackWhite(box) {
             symmetricBox.color = BLACK;
             symmetricBox.letter = "";
         }
+=======
+
+    box.state == "" ? box.state = "BLANKSPACE" : box.state = ""
+
+    if (symmetric.checked) {
+        var maxIndex = (xGrid.columns * xGrid.rows) - 1;
+        var symmetricBox = gridRepeater.itemAt(maxIndex - box.constIndex);
+
+        if (symmetricBox.state == box.state)
+               return
+        symmetricBox.state == "" ? symmetricBox.state = "BLANKSPACE" : symmetricBox.state = "";
+>>>>>>> box_color_states
     }
 }
 
