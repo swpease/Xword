@@ -3,7 +3,6 @@ import QtQuick.Controls 1.4
 import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
-import "Utils.js" as Utils
 
 Window {
     id: startUp
@@ -72,8 +71,8 @@ Window {
                     text: "OK"
                     isDefault: true
                     onClicked: {
-                        gridContainer.cols = numWide.value
-                        gridContainer.rows = numHigh.value
+                        xGrid.columns = numWide.value
+                        xGrid.rows = numHigh.value
 
                         gridContainer.visible = true
 

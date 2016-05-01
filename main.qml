@@ -45,6 +45,13 @@ ApplicationWindow {
                     clueEditor.visible = true;
                 }
             }
+//            MenuItem {
+//                text: qsTr("Resquareify")
+//                onTriggered: {
+//                    var contentHeight = root.height - root.extraHeight
+//                    root.width > contentHeight ? root.width = contentHeight : root.height = root.width + root.extraHeight
+//                }
+//            }
         }
     }
 
@@ -126,17 +133,11 @@ ApplicationWindow {
         width: 700
         height: 700
 
-        property int rows
-        property int cols
-
         Grid {
             id: xGrid
 
             property bool autoMoveDown: false
-            property string directionArrow: autoMoveDown ? "↓" : "→" //Put here or in 'box'?
-
-            columns: gridContainer.cols
-            rows: gridContainer.rows
+            property string directionArrow: autoMoveDown ? "↓" : "→"
 
             Repeater{
                 id: gridRepeater
@@ -144,125 +145,11 @@ ApplicationWindow {
                 model: parent.columns * parent.rows
                 onItemAdded: {
                     // Only perform after the grid has been assembled.
-                    if (index + 1 == xGrid.rows * xGrid.columns) {
+                    if (index + 1 == xGrid.rows * xGrid.columns)
                         Utils.assignNums(xGrid.rows, xGrid.columns)
-                    }
                 }
 
-                Rectangle {
-                    id: box
-
-                    property int constIndex: index
-                    property alias number: numberChild.text
-                    property alias letter: letterChild.text
-                    property string clue
-
-                    width: root.width / xGrid.columns
-                    height: (root.height - root.extraHeight) / xGrid.rows
-                    border { width: 1; color: Utils.BLACK }
-                    color: focus ? Utils.LIGHTBLUE : palette.window
-
-                    onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
-                    onStateChanged: letter = ""
-
-                    Keys.onPressed: {
-                        Utils.keysMove(event, index)
-
-                        if (Utils.KEYS.indexOf(event.key) !== -1 && !blackBoxToggle.checked && state == "") {
-                            letter = event.text.toUpperCase();
-                            Utils.autoMove(box);
-                            event.accepted = true;
-                        }
-                        if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
-                            if (blackBoxToggle.checked && state == "BLANKSPACE") {
-                                Utils.blackWhite(box);
-                                Utils.assignNums(xGrid.rows, xGrid.columns);
-                            } else {
-                                letter = "";
-                            }
-                            event.accepted = true
-                        }
-                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && state == "") {
-                            Utils.blackWhite(box);
-                            Utils.assignNums(xGrid.rows, xGrid.columns);
-                            event.accepted = true;
-                        }
-                    }
-
-                    Text {
-                        id: letterChild
-
-                        font.pixelSize: parent.height * 0.7
-                        anchors {
-                            centerIn: parent
-                            horizontalCenterOffset: parent.width * 0.05
-                            verticalCenterOffset: parent.height * 0.05
-                        }
-                    }
-
-                    Text {
-                        id: numberChild
-
-                        font.pixelSize: parent.width * 0.25
-                        anchors {
-                            left: parent.left
-                            leftMargin: 2
-                            top: parent.top
-                            topMargin: 2
-                        }
-                    }
-
-                    Text {
-                        id: directionChild
-
-                        font.pixelSize: parent.width * 0.25
-                        anchors {
-                            right: parent.right
-                            rightMargin: 2
-                            top: parent.top
-                            topMargin: 2
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: { border.color = Utils.BLUE; border.width = 2 }
-                        onExited: { border.color = Utils.BLACK; border.width = 1 }
-                        onClicked: {
-                            if (parent.focus && !blackBoxToggle.checked) {
-                                xGrid.autoMoveDown = !xGrid.autoMoveDown
-                                directionChild.text = xGrid.directionArrow
-                            }
-
-                            parent.focus = true
-
-                            if (blackBoxToggle.checked) {
-                                Utils.blackWhite(parent)
-                                Utils.assignNums(xGrid.rows, xGrid.columns)
-                            }
-                        }
-                    }
-
-                    Connections {
-                        target: blackBoxToggle
-                        onClicked: {
-                            if (color == Utils.LIGHTBLUE || color == Utils.DARKGREY) {
-                                directionChild.text == "" ? directionChild.text = xGrid.directionArrow : directionChild.text = "";
-                            }
-                        }
-                    }
-
-                    states: [
-                        State {
-                            name: "BLANKSPACE"
-                            PropertyChanges {
-                                target: box
-                                color: focus ? Utils.DARKGREY : Utils.BLACK
-                            }
-                        }
-                    ]
-                }
+                Square { }
             }
         }
     }
