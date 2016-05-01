@@ -169,6 +169,7 @@ ApplicationWindow {
                             gridContainer.rows = numHigh.value
 
                             gridContainer.visible = true
+//                            clueEditor.visible = true
 
                             numHigh.value = 0
                             numWide.value = 0
@@ -337,6 +338,7 @@ ApplicationWindow {
 
 
     // THE ACTUAL CROSSWORD GRID
+    // Changing from Window{} to Item{}, commenting out onClosing:
     Item {
         id: gridContainer
 
@@ -351,16 +353,14 @@ ApplicationWindow {
 
         Grid {
             id: xGrid
+            columns: gridContainer.cols
+            rows: gridContainer.rows
 
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→" //Put here or in 'box'?
 
-            columns: gridContainer.cols
-            rows: gridContainer.rows
-
             Repeater{
                 id: gridRepeater
-
                 model: parent.columns * parent.rows
                 onItemAdded: {
                     // Only perform after the grid has been assembled.
@@ -371,18 +371,26 @@ ApplicationWindow {
 
                 Rectangle {
                     id: box
-
                     property int constIndex: index
-                    property alias number: numberChild.text
-                    property alias letter: letterChild.text
+                    property string number  // Used to pass assigned clue numbers to the Text{id: number} children
+                    // Used as a string instead of an int to be able to pass empty values
+                    property string letter
                     property string clue
 
+//                    width: gridContainer.width / xGrid.columns
+//                    height: gridContainer.height / xGrid.rows
                     width: root.width / xGrid.columns
                     height: (root.height - root.extraHeight) / xGrid.rows
-                    border { width: 1; color: Utils.BLACK }
-                    color: focus ? Utils.LIGHTBLUE : palette.window
+                    border{
+                        width: 1
+                        color: Utils.BLACK
+                    }
+                    color: palette.window
+                    onFocusChanged: {
+                        if (color != Utils.BLACK) {
+                        color == palette.window ? color = Utils.LIGHTBLUE : color = palette.window
+                        }
 
-<<<<<<< HEAD
 //                        // TODO... add in a 'dark grey' so you can see which black box has focus.
 //                        if (color == Utils.BLACK) {
 //                            if (focus) {
@@ -400,21 +408,17 @@ ApplicationWindow {
                             directionChild.text = xGrid.directionArrow
                         }
                     }
-=======
-                    onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
-                    onStateChanged: letter = ""
->>>>>>> box_color_states
 
                     Keys.onPressed: {
                         Utils.keysMove(event, index)
 
-                        if (Utils.KEYS.indexOf(event.key) !== -1 && !blackBoxToggle.checked && state == "") {
+                        if (Utils.KEYS.indexOf(event.key) !== -1 && blackBoxToggle.checked == false && color != Utils.BLACK) {
                             letter = event.text.toUpperCase();
                             Utils.autoMove(box);
                             event.accepted = true;
                         }
                         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
-                            if (blackBoxToggle.checked && state == "BLANKSPACE") {
+                            if (blackBoxToggle.checked && color == Utils.BLACK) {
                                 Utils.blackWhite(box);
                                 Utils.assignNums(xGrid.rows, xGrid.columns);
                             } else {
@@ -422,7 +426,7 @@ ApplicationWindow {
                             }
                             event.accepted = true
                         }
-                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && state == "") {
+                        if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && color != Utils.BLACK) {
                             Utils.blackWhite(box);
                             Utils.assignNums(xGrid.rows, xGrid.columns);
                             event.accepted = true;
@@ -432,36 +436,38 @@ ApplicationWindow {
                     Text {
                         id: letterChild
 
-                        font.pixelSize: parent.height * 0.7
                         anchors {
                             centerIn: parent
                             horizontalCenterOffset: parent.width * 0.05
                             verticalCenterOffset: parent.height * 0.05
                         }
+                        text: parent.letter
+                        font.pixelSize: parent.height * 0.7
                     }
 
                     Text {
                         id: numberChild
 
-                        font.pixelSize: parent.width * 0.25
+                        text: parent.number
                         anchors {
                             left: parent.left
                             leftMargin: 2
                             top: parent.top
                             topMargin: 2
                         }
+                        font.pixelSize: parent.width * 0.25
                     }
 
                     Text {
                         id: directionChild
 
-                        font.pixelSize: parent.width * 0.25
                         anchors {
                             right: parent.right
                             rightMargin: 2
                             top: parent.top
                             topMargin: 2
                         }
+                        font.pixelSize: parent.width * 0.25
                     }
 
                     MouseArea {
@@ -474,34 +480,13 @@ ApplicationWindow {
                                 xGrid.autoMoveDown = !xGrid.autoMoveDown
                                 directionChild.text = xGrid.directionArrow
                             }
-
                             parent.focus = true
-
                             if (blackBoxToggle.checked) {
                                 Utils.blackWhite(parent)
                                 Utils.assignNums(xGrid.rows, xGrid.columns)
                             }
                         }
                     }
-
-                    Connections {
-                        target: blackBoxToggle
-                        onClicked: {
-                            if (color == Utils.LIGHTBLUE || color == Utils.DARKGREY) {
-                                directionChild.text == "" ? directionChild.text = xGrid.directionArrow : directionChild.text = "";
-                            }
-                        }
-                    }
-
-                    states: [
-                        State {
-                            name: "BLANKSPACE"
-                            PropertyChanges {
-                                target: box
-                                color: focus ? Utils.DARKGREY : Utils.BLACK
-                            }
-                        }
-                    ]
                 }
             }
         }
