@@ -28,8 +28,8 @@ ApplicationWindow {
                 text: qsTr("New")
                 shortcut: StandardKey.New
                 onTriggered: {
-                    startUp.visible = true;
-                    startUp.raise();
+                    startUpWindow.visible = true;
+                    startUpWindow.raise();
                 }
             }
         }
@@ -42,8 +42,6 @@ ApplicationWindow {
                     var numClues = Utils.numberOfClues();
                     acrossClues.model = numClues[0];
                     downClues.model = numClues[1];
-//                    acrossCluesRepeater.model = numClues[0];
-//                    downCluesRepeater.model = numClues[1];
                     clueEditor.visible = true;
                 }
             }
@@ -79,106 +77,7 @@ ApplicationWindow {
         color: palette.windowText
     }
 
-    // BRINGS UP A WINDOW FOR CREATING A NEW XWORD PROJECT
-    Window {
-        id: startUp
-        visible: false
-        height: 150
-        width: root.width * 0.7
-        maximumHeight: root.height / 2
-        maximumWidth: root.width
-        color: palette.window
-
-        //Keys.onReturnPressed: startUpOK.clicked()   // IS THIS RIGHT??? No.
-
-        Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
-            sequence: StandardKey.Close
-            onActivated: {
-                numHigh.value = 0
-                numWide.value = 0
-                numHigh.focus = false
-                numWide.focus = false
-                startUp.close()
-            }
-        }
-
-        ColumnLayout {
-            id: column
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: column.spacing
-
-            // Setting the Xword dimensions:
-            GroupBox {
-                Layout.fillWidth: true
-                title: "Crossword Puzzle Size"
-                RowLayout {
-                    anchors.fill: parent
-                    Keys.onReturnPressed: {
-                        if (numHigh.value && numWide.value) {
-                        startUpOK.clicked();
-                        }
-                    }
-                    ColumnLayout {
-                        Label { text: "Crossword Height" }
-                        SpinBox {
-                            id: numHigh
-                            maximumValue: 100
-                            suffix: "  squares"
-                        }
-                    }
-                    ColumnLayout {
-                        Label { text: "Crossword Width" }
-                        SpinBox {
-                            id: numWide
-                            maximumValue: 100
-                            suffix: "  squares"
-                        }
-                    }
-                }
-            }
-
-            // Buttons to accept/cancel:
-            GroupBox {
-                Layout.fillWidth: true
-                RowLayout {
-                    anchors.fill: parent
-                    Item { Layout.fillWidth: true }
-                    Button {
-                        id: startUpOK
-                        text: "OK"
-                        isDefault: true
-                        onClicked: {
-                            gridContainer.cols = numWide.value
-                            gridContainer.rows = numHigh.value
-
-                            gridContainer.visible = true
-
-                            numHigh.value = 0
-                            numWide.value = 0
-                            numHigh.focus = false
-                            numWide.focus = false
-                            startUp.close()
-                        }
-                    }
-
-                    Button {
-                        id: startUpCancel
-                        text: "Cancel"
-                        onClicked: {
-                            numHigh.value = 0
-                            numWide.value = 0
-                            numHigh.focus = false
-                            numWide.focus = false
-                            startUp.close()
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    StartUpWindow { id: startUpWindow }  // Window to set the size of the crossword
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
@@ -229,8 +128,6 @@ ApplicationWindow {
 
         property int rows
         property int cols
-
-        //onClosing: clueEditor.visible = false
 
         Grid {
             id: xGrid

@@ -4,5 +4,6 @@
         <file>MainForm.ui.qml</file>
         <file>Utils.js</file>
         <file>CluesColumn.qml</file>
+        <file>StartUpWindow.qml</file>
     </qresource>
 </RCC>
