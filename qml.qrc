@@ -3,5 +3,6 @@
         <file>main.qml</file>
         <file>MainForm.ui.qml</file>
         <file>Utils.js</file>
+        <file>CluesColumn.qml</file>
     </qresource>
 </RCC>
