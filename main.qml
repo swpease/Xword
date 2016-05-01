@@ -351,14 +351,16 @@ ApplicationWindow {
 
         Grid {
             id: xGrid
-            columns: gridContainer.cols
-            rows: gridContainer.rows
 
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→" //Put here or in 'box'?
 
+            columns: gridContainer.cols
+            rows: gridContainer.rows
+
             Repeater{
                 id: gridRepeater
+
                 model: parent.columns * parent.rows
                 onItemAdded: {
                     // Only perform after the grid has been assembled.
@@ -369,6 +371,7 @@ ApplicationWindow {
 
                 Rectangle {
                     id: box
+
                     property int constIndex: index
                     property alias number: numberChild.text
                     property alias letter: letterChild.text
@@ -376,22 +379,11 @@ ApplicationWindow {
 
                     width: root.width / xGrid.columns
                     height: (root.height - root.extraHeight) / xGrid.rows
-                    border{
-                        width: 1
-                        color: Utils.BLACK
-                    }
+                    border { width: 1; color: Utils.BLACK }
                     color: focus ? Utils.LIGHTBLUE : palette.window
 
-                    states: [
-                        State {
-                            name: "BLANKSPACE"
-                            PropertyChanges {
-                                target: box
-                                color: focus ? Utils.DARKGREY : Utils.BLACK
-                            }
-                        }
-                    ]
-                    onFocusChanged: focus ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
+                    onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
+                    onStateChanged: letter = ""
 
                     Keys.onPressed: {
                         Utils.keysMove(event, index)
@@ -462,13 +454,34 @@ ApplicationWindow {
                                 xGrid.autoMoveDown = !xGrid.autoMoveDown
                                 directionChild.text = xGrid.directionArrow
                             }
+
                             parent.focus = true
+
                             if (blackBoxToggle.checked) {
                                 Utils.blackWhite(parent)
                                 Utils.assignNums(xGrid.rows, xGrid.columns)
                             }
                         }
                     }
+
+                    Connections {
+                        target: blackBoxToggle
+                        onClicked: {
+                            if (color == Utils.LIGHTBLUE || color == Utils.DARKGREY) {
+                                directionChild.text == "" ? directionChild.text = xGrid.directionArrow : directionChild.text = "";
+                            }
+                        }
+                    }
+
+                    states: [
+                        State {
+                            name: "BLANKSPACE"
+                            PropertyChanges {
+                                target: box
+                                color: focus ? Utils.DARKGREY : Utils.BLACK
+                            }
+                        }
+                    ]
                 }
             }
         }

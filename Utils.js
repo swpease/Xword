@@ -96,7 +96,7 @@ function assignNums(rows, cols) {
         }
 
         if (box.state == "") {
-            if (box.constIndex < cols || box.constIndex % cols == 0) {
+            if (box.constIndex < cols || box.constIndex % cols == 0) {  // Could just use i
                 box.number = num;  // Does QML do automatic type coercion?? YES
                 num += 1;
             } else {
@@ -123,7 +123,6 @@ function blackWhite(box) {
       */
 
     box.state == "" ? box.state = "BLANKSPACE" : box.state = ""
-    box.letter = ""
 
     if (symmetric.checked) {
         var maxIndex = (xGrid.columns * xGrid.rows) - 1;
@@ -131,12 +130,7 @@ function blackWhite(box) {
 
         if (symmetricBox.state == box.state)
                return
-        if (symmetricBox.state == "") {
-            symmetricBox.state = "BLANKSPACE";
-            symmetricBox.letter = "";
-        } else {
-            symmetricBox.state = "";
-        }
+        symmetricBox.state == "" ? symmetricBox.state = "BLANKSPACE" : symmetricBox.state = "";
     }
 }
 
