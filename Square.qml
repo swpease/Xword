@@ -25,6 +25,9 @@ Rectangle {
     onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
     onStateChanged: letter = ""
 
+    // Behavior producing some lag effect when switching states w/ symmetry on.
+    // Looks bad anyway...
+
     Keys.onPressed: {
         Utils.keysMove(event, index)
 
@@ -120,6 +123,13 @@ Rectangle {
                 target: box
                 color: focus ? Utils.DARKGREY : Utils.BLACK
             }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            to: "*"
+            ColorAnimation { duration: 100 }
         }
     ]
 }

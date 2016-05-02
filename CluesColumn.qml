@@ -9,11 +9,11 @@ import "Utils.js" as Utils
 Flickable {
     id: colFlick
 
-    Layout.minimumWidth: 200
-    contentHeight: cluesHeader.height + cluesCol.height + cluesCol.anchors.topMargin + cluesCol.spacing
-
     property alias headerName: directionName.text
     property alias model: cluesRepeater.model
+
+    Layout.minimumWidth: 200
+    contentHeight: cluesHeader.height + cluesCol.height + cluesCol.anchors.topMargin + cluesCol.spacing
 
     TextField { id: dummy; visible: false }  // To get the label heights right
 
