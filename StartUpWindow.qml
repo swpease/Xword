@@ -7,6 +7,15 @@ import QtQuick.Layouts 1.1
 Window {
     id: startUp
 
+    function closeWindow()
+    {
+        numHigh.value = 0;
+        numWide.value = 0;
+        numHigh.focus = false;
+        numWide.focus = false;
+        startUp.close();
+    }
+
     visible: false
     height: 150
     width: root.width * 0.7
@@ -16,13 +25,7 @@ Window {
 
     Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
         sequence: StandardKey.Close
-        onActivated: {
-            numHigh.value = 0
-            numWide.value = 0
-            numHigh.focus = false
-            numWide.focus = false
-            startUp.close()
-        }
+        onActivated: closeWindow();
     }
 
     ColumnLayout {
@@ -34,6 +37,7 @@ Window {
         GroupBox {
             Layout.fillWidth: true
             title: "Crossword Puzzle Size"
+
             RowLayout {
                 anchors.fill: parent
                 Keys.onReturnPressed: {
@@ -41,21 +45,15 @@ Window {
                         startUpOK.clicked();
                     }
                 }
+
                 ColumnLayout {
                     Label { text: "Crossword Height" }
-                    SpinBox {
-                        id: numHigh
-                        maximumValue: 100
-                        suffix: "  squares"
-                    }
+                    SpinBox { id: numHigh; maximumValue: 100; suffix: "  squares" }
                 }
+
                 ColumnLayout {
                     Label { text: "Crossword Width" }
-                    SpinBox {
-                        id: numWide
-                        maximumValue: 100
-                        suffix: "  squares"
-                    }
+                    SpinBox { id: numWide; maximumValue: 100; suffix: "  squares" }
                 }
             }
         }
@@ -63,37 +61,31 @@ Window {
         // Buttons to accept/cancel:
         GroupBox {
             Layout.fillWidth: true
+
             RowLayout {
                 anchors.fill: parent
+
                 Item { Layout.fillWidth: true }
+
                 Button {
                     id: startUpOK
+
                     text: "OK"
                     isDefault: true
                     onClicked: {
                         xGrid.columns = numWide.value
                         xGrid.rows = numHigh.value
-
                         gridContainer.visible = true
 
-                        numHigh.value = 0
-                        numWide.value = 0
-                        numHigh.focus = false
-                        numWide.focus = false
-                        startUp.close()
+                        closeWindow();
                     }
                 }
 
                 Button {
                     id: startUpCancel
+
                     text: "Cancel"
-                    onClicked: {
-                        numHigh.value = 0
-                        numWide.value = 0
-                        numHigh.focus = false
-                        numWide.focus = false
-                        startUp.close()
-                    }
+                    onClicked: closeWindow();
                 }
             }
         }
