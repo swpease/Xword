@@ -78,7 +78,7 @@ ApplicationWindow {
         id: welcomeText
 
         anchors.centerIn: parent
-        text: "Welcome to Scott's amazing crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
+        text: "Welcome to the crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
         horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
@@ -139,7 +139,7 @@ ApplicationWindow {
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→"
 
-            Repeater{
+            Repeater {
                 id: gridRepeater
 
                 model: parent.columns * parent.rows

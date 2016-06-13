@@ -116,20 +116,16 @@ Rectangle {
         }
     }
 
-    states: [
-        State {
-            name: "BLANKSPACE"
-            PropertyChanges {
-                target: box
-                color: focus ? Utils.DARKGREY : Utils.BLACK
-            }
+    states: State {
+        name: "BLANKSPACE"
+        PropertyChanges {
+            target: box
+            color: focus ? Utils.DARKGREY : Utils.BLACK
         }
-    ]
+    }
 
-    transitions: [
-        Transition {
-            to: "*"
-            ColorAnimation { duration: 100 }
-        }
-    ]
+    transitions: Transition {
+        to: "*"
+        ColorAnimation { duration: 100 }
+    }
 }

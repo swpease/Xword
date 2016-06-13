@@ -97,7 +97,7 @@ function assignNums(rows, cols) {
 
         if (box.state == "") {
             if (box.constIndex < cols || box.constIndex % cols == 0) {  // Could just use i
-                box.number = num;  // Does QML do automatic type coercion?? YES
+                box.number = num;  // Does QML do automatic type coercion? YES
                 num += 1;
             } else {
                 var boxAbove = gridRepeater.itemAt(i - cols);
@@ -122,7 +122,7 @@ function blackWhite(box) {
       (i.e. the box that you clicked on while editing black and white boxes)
       */
 
-    box.state == "" ? box.state = "BLANKSPACE" : box.state = ""
+    box.state == "" ? box.state = "BLANKSPACE" : box.state = "";
 
     if (symmetric.checked) {
         var maxIndex = (xGrid.columns * xGrid.rows) - 1;
