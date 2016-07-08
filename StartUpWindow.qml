@@ -23,7 +23,7 @@ Window {
     maximumWidth: root.width
     color: palette.window
 
-    Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
+    Shortcut {
         sequence: StandardKey.Close
         onActivated: closeWindow();
     }

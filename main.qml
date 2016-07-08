@@ -32,6 +32,19 @@ ApplicationWindow {
                     startUpWindow.raise();
                 }
             }
+            MenuItem {
+                // do something like: have a bool property called save vs saveas
+                // then check if the fileurl is empty for the saveDialog
+                // put the logic in the onTriggered thing below
+                text: qsTr("Save As")
+                shortcut: StandardKey.SaveAs
+                onTriggered: saveDialog.open();
+            }
+            MenuItem {
+                text: qsTr("Open")
+                shortcut: StandardKey.Open
+                onTriggered: openDialog.open();
+            }
         }
         Menu {
             title: qsTr("Edit")
@@ -84,7 +97,25 @@ ApplicationWindow {
         color: palette.windowText
     }
 
-    StartUpWindow { id: startUpWindow }  // Window to set the size of the crossword
+    // FILE IO
+    FileDialog {
+        id: saveDialog
+        selectExisting: false
+        title: "Type a name for your file to save"
+        folder: shortcuts.home
+        onFileUrlChanged: FileIO.on_saveAs(fileUrl, Utils.saveData());
+    }
+
+    FileDialog {
+        id: openDialog
+        title: "Select a file to open:"
+        nameFilters: [ "Crossword files: (*.xwd)" ]
+        folder: shortcuts.home
+        onFileUrlChanged: Utils.loadData(FileIO.on_open(fileUrl))
+    }
+
+    // SETTING SIZE OF CROSSWORD
+    StartUpWindow { id: startUpWindow }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
@@ -98,7 +129,7 @@ ApplicationWindow {
         minimumWidth: acrossClues.Layout.minimumWidth + downClues.Layout.minimumWidth
         color: palette.window
 
-        Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
+        Shortcut {
             sequence: StandardKey.Close
             onActivated: clueEditor.close()
         }
@@ -135,6 +166,9 @@ ApplicationWindow {
 
         Grid {
             id: xGrid
+            // xGrid.rows and xGrid.columns set by:
+            //     (1) StartUpWindow.qml
+            //     (2) openDialog
 
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→"
