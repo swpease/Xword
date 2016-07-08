@@ -33,17 +33,22 @@ ApplicationWindow {
                 }
             }
             MenuItem {
+                text: qsTr("Open")
+                shortcut: StandardKey.Open
+                onTriggered: openDialog.open();
+            }
+            MenuItem {
+                text: qsTr("Save")
+                shortcut: StandardKey.Save
+            }
+
+            MenuItem {
                 // do something like: have a bool property called save vs saveas
                 // then check if the fileurl is empty for the saveDialog
                 // put the logic in the onTriggered thing below
                 text: qsTr("Save As")
                 shortcut: StandardKey.SaveAs
                 onTriggered: saveDialog.open();
-            }
-            MenuItem {
-                text: qsTr("Open")
-                shortcut: StandardKey.Open
-                onTriggered: openDialog.open();
             }
         }
         Menu {
@@ -58,13 +63,13 @@ ApplicationWindow {
                     clueEditor.visible = true;
                 }
             }
-//            MenuItem {
-//                text: qsTr("Resquareify")
-//                onTriggered: {
-//                    var contentHeight = root.height - root.extraHeight
-//                    root.width > contentHeight ? root.width = contentHeight : root.height = root.width + root.extraHeight
-//                }
-//            }
+            MenuItem {
+                text: qsTr("Resquareify")
+                onTriggered: {
+                    var contentHeight = root.height - root.extraHeight
+                    root.width > contentHeight ? root.width = contentHeight : root.height = root.width + root.extraHeight
+                }
+            }
         }
     }
 

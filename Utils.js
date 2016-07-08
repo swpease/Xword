@@ -17,25 +17,13 @@ for (var i = 0x41; i <= 0x5a; i++) {
   FUNCTIONS
   */
 
-//function getClues() {
-//    /* Provides an array of the strings of clues.
-//      */
-
-//    var clues = [];
-
-//    for (var i = 0; i < cluesRepeater.model; i++) {
-
-//    }
-
-//}
-
 function saveData() {
     /* Saves a crossword.
       Generates four arrays:
-          (1) The crossword dimensions (row x col)
+          (1) The crossword dimensions [row, col]
           (2) The state ("" or "BLANKSPACE") of each Square
           (3) The letter of each Square
-          TODO... (4) The clues for each word
+          (4) The clues for each word [[acrosses], [downs]]
       */
 
     var dims = [xGrid.rows, xGrid.columns];
@@ -49,9 +37,10 @@ function saveData() {
         letters.push(box.letter);
     }
 
-    for (var i = 0; i < acrossClues.model; i++)
+    clues.push(acrossClues.getCluesText());
+    clues.push(downClues.getCluesText());
 
-    return [dims, states, letters];
+    return [dims, states, letters, clues];
 }
 
 function loadData(cppData) {
@@ -62,11 +51,13 @@ function loadData(cppData) {
          (1) The crossword dimensions
          (2) The state ("" or "BLANKSPACE")
          (3) The letter (if state == ""...)
+         (4) The clues as an array of arrays [[across], [down]] (may be empty)
       */
 
     var dims = cppData[0];
     var states = cppData[1];
     var letters = cppData[2];
+    var clues = cppData[3];
 
     xGrid.rows = dims[0];
     xGrid.columns = dims[1];
@@ -76,8 +67,19 @@ function loadData(cppData) {
         box.letter = letters[i];
         box.state = states[i];
     }
+    assignNums(xGrid.rows, xGrid.columns);
 
     gridContainer.visible = true;
+
+    if(clues == true) {
+        var numClues = numberOfClues();
+        acrossClues.model = numClues[0];
+        downClues.model = numClues[1];
+        acrossClues.setCluesText(clues[0]);
+        downClues.setCluesText(clues[1]);
+    }
+
+    return;
 }
 
 function numberOfClues() {
@@ -175,6 +177,8 @@ function assignNums(rows, cols) {
             }
         }
     }
+
+    return;
 }
 
 function blackWhite(box) {
@@ -195,6 +199,8 @@ function blackWhite(box) {
                return
         symmetricBox.state == "" ? symmetricBox.state = "BLANKSPACE" : symmetricBox.state = "";
     }
+
+    return;
 }
 
 
@@ -213,6 +219,8 @@ function autoMove(box) {
             gridRepeater.itemAt(box.constIndex + xGrid.columns).focus = true;
         }
     }
+
+    return;
 }
 
 function keysMove(event, index) {
@@ -238,6 +246,8 @@ function keysMove(event, index) {
         event.accepted = true
         moveRight(event, index);
     }
+
+    return;
 }
 
 //Helper functions for moving around.
