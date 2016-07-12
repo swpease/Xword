@@ -12,7 +12,6 @@ ApplicationWindow {
     property bool stateChanged: false  // changes to check: clues, box state, box letter, grid existence
     property string currentFileUrl
     property string formerFileUrl
-    property bool waiting: false
     onCurrentFileUrlChanged: stateChanged = false;  // Can I just do this?
 
     function overwriteFile() {
@@ -134,12 +133,6 @@ ApplicationWindow {
             root.formerFileUrl = root.currentFileUrl;
             root.currentFileUrl = fileUrl;
             FileIO.on_saveAs(fileUrl, Utils.saveData());
-            // Do I need this here?
-            if(root.formerFileUrl == "") {
-                while(root.waiting == true) { }
-            } else {
-                root.waiting = false;
-            }
         }
     }
 
@@ -160,28 +153,17 @@ ApplicationWindow {
 
     MessageDialog {
         id: replaceDialog
-        // mess to deal w/ opening a new file when there are unsaved changes to the current file
-        // (isOpen property)
-        property bool isOpen: false
-        Component.onCompleted: isOpen = true;
-        Component.onDestruction: isOpen = false;
         icon: StandardIcon.Question
         text: "A file with this name already exists. Do you want to replace it?"
         standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
-        onYes: {
-            FileIO.on_saveAs(saveDialog.fileUrl, Utils.saveData(), true);
-            root.waiting = false;
-        }
+        onYes: FileIO.on_save(saveDialog.fileUrl, Utils.saveData());
         onNo: {
             root.currentFileUrl = root.formerFileUrl;
             saveDialog.open();
-            // don't need to change root.waiting
         }
         onRejected: {
             root.currentFileUrl = root.formerFileUrl;
             replaceDialog.close();
-            root.waiting = false;
-            console.log(root.currentFileUrl)  ////////////
         }
     }
 
@@ -191,16 +173,7 @@ ApplicationWindow {
         text: "There are unsaved changes to the current crossword. Do you want to save?"
         standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
         onYes: {
-            console.log("open fired pre logic");
-            root.waiting = true;
             root.save();
-            if(root.currentFileUrl == "") {
-                while(root.waiting == true) { }
-            } else {
-                root.waiting = false;
-            }
-
-            console.log("open fired post call to save");
             Utils.loadData(FileIO.on_open(openDialog.fileUrl));
             root.currentFileUrl = openDialog.fileUrl;
         }
