@@ -15,6 +15,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("FileIO", &fileIO);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
+    QObject *rootObject = engine.rootObjects().first();
+    QObject::connect(&fileIO, SIGNAL(fileExists()), rootObject, SLOT(overwriteFile()));
+
     return app.exec();
 }
 

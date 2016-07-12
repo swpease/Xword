@@ -5,26 +5,7 @@ FileIO::FileIO(QObject *parent) : QObject(parent)
 
 }
 
-void FileIO::on_saveAs(QUrl url, QVariantList data)
-{
-    QString fileName = url.toString();
-    fileName += ".xwd";
-    fileName.remove(0, 5);
-
-    QFile file(fileName);
-
-    if(!file.open(QFile::WriteOnly)) {
-        qDebug() << "Cannot open file for writing.";
-        return;
-    }
-
-    QDataStream out(&file);
-    out << data;
-
-    file.close();
-}
-
-QVariantList FileIO::on_open(QUrl url)
+QVariantList FileIO::on_open(const QUrl &url)
 {
     QString fileName = url.toString();
     fileName.remove(0, 5);
@@ -44,4 +25,34 @@ QVariantList FileIO::on_open(QUrl url)
 
     file.close();
     return data;
+}
+
+void FileIO::on_saveAs(QUrl url, QVariantList data, bool overwrite)
+{
+    QString fileName = url.toString();
+    fileName.endsWith(".xwd") ? fileName : fileName += ".xwd";
+//    fileName += ".xwd";
+    fileName.remove(0, 5);
+    QFile file(fileName);
+
+    QFileInfo fileInfo(file);
+    if(!overwrite && fileInfo.exists()) {
+        emit fileExists();
+        return;
+    }
+
+    if(!file.open(QFile::WriteOnly)) {
+        qDebug() << "Cannot open file for writing.";
+        return;
+    }
+
+    QDataStream out(&file);
+    out << data;
+
+    file.close();
+}
+
+void FileIO::on_save(QUrl url, QVariantList data)
+{
+    on_saveAs(url, data, true);
 }

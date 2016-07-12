@@ -101,6 +101,7 @@ Flickable {
                 width: Math.floor(colFlick.width * 2 / 3)
                 placeholderText: "Enter a clue..."
                 onEditingFinished: focus = false;
+                onTextChanged: root.stateChanged = true;
             }
         }
     }

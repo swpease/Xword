@@ -77,6 +77,7 @@ Window {
                         xGrid.rows = numHigh.value
                         gridContainer.visible = true
 
+                        root.stateChanged = true;
                         closeWindow();
                     }
                 }

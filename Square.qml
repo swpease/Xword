@@ -23,7 +23,10 @@ Rectangle {
     color: focus ? Utils.LIGHTBLUE : palette.window
 
     onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
-    onStateChanged: letter = ""
+    onStateChanged: {
+        letter = "";
+        root.stateChanged = true;
+    }
 
     // Behavior producing some lag effect when switching states w/ symmetry on.
     // Looks bad anyway...
@@ -34,6 +37,7 @@ Rectangle {
         if (Utils.KEYS.indexOf(event.key) !== -1 && !blackBoxToggle.checked && state == "") {
             letter = event.text.toUpperCase();
             Utils.autoMove(box);
+            root.stateChanged = true;
             event.accepted = true;
         }
         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
@@ -43,11 +47,13 @@ Rectangle {
             } else {
                 letter = "";
             }
-            event.accepted = true
+            root.stateChanged = true;
+            event.accepted = true;
         }
         if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && state == "") {
             Utils.blackWhite(box);
             Utils.assignNums(xGrid.rows, xGrid.columns);
+            root.stateChanged = true;
             event.accepted = true;
         }
     }

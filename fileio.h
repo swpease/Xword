@@ -12,12 +12,14 @@ class FileIO : public QObject
 public:
     explicit FileIO(QObject *parent = 0);
 
-    Q_INVOKABLE QVariantList on_open(QUrl url);
+    Q_INVOKABLE QVariantList on_open(const QUrl &url);
 
 signals:
+    void fileExists();
 
 public slots:
-    void on_saveAs(QUrl url, QVariantList data);  // write as const T &?
+    void on_saveAs(QUrl url, QVariantList data, bool overwrite = false);  // write as const T &?
+    void on_save(QUrl url, QVariantList data);
 };
 
 #endif // FILEIO_H

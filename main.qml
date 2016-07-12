@@ -9,6 +9,23 @@ ApplicationWindow {
     id: root
 
     property int extraHeight
+    property bool stateChanged: false  // changes to check: clues, box state, box letter, grid existence
+    property string currentFileUrl
+    property string formerFileUrl
+    property bool waiting: false
+    onCurrentFileUrlChanged: stateChanged = false;  // Can I just do this?
+
+    function overwriteFile() {
+        // Slot connected to C++ FIleIO fileExists() signal.
+        replaceDialog.open();
+    }
+
+    function save() {
+        /* Chooses whether or not the saveDialog needs to be shown, depending
+          on the current state vs the prior state.
+          */
+        currentFileUrl == "" ? saveDialog.open() : FileIO.on_save(currentFileUrl, Utils.saveData());
+    }
 
     visible: true
     title: qsTr("Crossword Maker 5100")
@@ -37,17 +54,21 @@ ApplicationWindow {
                 shortcut: StandardKey.Open
                 onTriggered: openDialog.open();
             }
+            MenuSeparator { }
             MenuItem {
                 text: qsTr("Save")
                 shortcut: StandardKey.Save
+                enabled: root.stateChanged;
+                onTriggered: {
+                    root.save();
+                    root.stateChanged = false;
+                }
             }
 
             MenuItem {
-                // do something like: have a bool property called save vs saveas
-                // then check if the fileurl is empty for the saveDialog
-                // put the logic in the onTriggered thing below
                 text: qsTr("Save As")
                 shortcut: StandardKey.SaveAs
+                enabled: xGrid.rows == -1 ? false : true;  // Alt: test if currentFileUrl is empty
                 onTriggered: saveDialog.open();
             }
         }
@@ -63,6 +84,7 @@ ApplicationWindow {
                     clueEditor.visible = true;
                 }
             }
+            MenuSeparator { }
             MenuItem {
                 text: qsTr("Resquareify")
                 onTriggered: {
@@ -96,7 +118,7 @@ ApplicationWindow {
         id: welcomeText
 
         anchors.centerIn: parent
-        text: "Welcome to the crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
+        text: "Welcome to the crossword puzzle editor!"
         horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
@@ -108,7 +130,17 @@ ApplicationWindow {
         selectExisting: false
         title: "Type a name for your file to save"
         folder: shortcuts.home
-        onFileUrlChanged: FileIO.on_saveAs(fileUrl, Utils.saveData());
+        onFileUrlChanged: {
+            root.formerFileUrl = root.currentFileUrl;
+            root.currentFileUrl = fileUrl;
+            FileIO.on_saveAs(fileUrl, Utils.saveData());
+            // Do I need this here?
+            if(root.formerFileUrl == "") {
+                while(root.waiting == true) { }
+            } else {
+                root.waiting = false;
+            }
+        }
     }
 
     FileDialog {
@@ -116,7 +148,66 @@ ApplicationWindow {
         title: "Select a file to open:"
         nameFilters: [ "Crossword files: (*.xwd)" ]
         folder: shortcuts.home
-        onFileUrlChanged: Utils.loadData(FileIO.on_open(fileUrl))
+        onFileUrlChanged: {
+            if(root.stateChanged) {
+                saveOnOpenDialog.open();
+            } else {
+                Utils.loadData(FileIO.on_open(fileUrl));
+                root.currentFileUrl = fileUrl;
+            }
+        }
+    }
+
+    MessageDialog {
+        id: replaceDialog
+        // mess to deal w/ opening a new file when there are unsaved changes to the current file
+        // (isOpen property)
+        property bool isOpen: false
+        Component.onCompleted: isOpen = true;
+        Component.onDestruction: isOpen = false;
+        icon: StandardIcon.Question
+        text: "A file with this name already exists. Do you want to replace it?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: {
+            FileIO.on_saveAs(saveDialog.fileUrl, Utils.saveData(), true);
+            root.waiting = false;
+        }
+        onNo: {
+            root.currentFileUrl = root.formerFileUrl;
+            saveDialog.open();
+            // don't need to change root.waiting
+        }
+        onRejected: {
+            root.currentFileUrl = root.formerFileUrl;
+            replaceDialog.close();
+            root.waiting = false;
+            console.log(root.currentFileUrl)  ////////////
+        }
+    }
+
+    MessageDialog {
+        id: saveOnOpenDialog
+        icon: StandardIcon.Question
+        text: "There are unsaved changes to the current crossword. Do you want to save?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: {
+            console.log("open fired pre logic");
+            root.waiting = true;
+            root.save();
+            if(root.currentFileUrl == "") {
+                while(root.waiting == true) { }
+            } else {
+                root.waiting = false;
+            }
+
+            console.log("open fired post call to save");
+            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
+            root.currentFileUrl = openDialog.fileUrl;
+        }
+        onNo: {
+            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
+            root.currentFileUrl = openDialog.fileUrl;
+        }
     }
 
     // SETTING SIZE OF CROSSWORD
@@ -168,6 +259,11 @@ ApplicationWindow {
         visible: false
         width: 700
         height: 700
+        Component.onDestruction: {
+            if(root.stateChanged) {
+                //window about saving
+            }
+        }
 
         Grid {
             id: xGrid
