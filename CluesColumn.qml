@@ -12,6 +12,30 @@ Flickable {
     property alias headerName: directionName.text
     property alias model: cluesRepeater.model
 
+    function getCluesText() {
+        /* Returns an array of the strings of clues. */
+
+        var clues = [];
+
+        for (var i = 0; i < cluesRepeater.model; i++) {
+            var clue = cluesRepeater.itemAt(i);
+            clues.push(clue.text);
+        }
+
+        return clues;
+    }
+
+    function setCluesText(clueTexts) {
+        /* clueTexts: an array of clues.
+          Populates the clues from a saved crossword.
+          */
+
+        for (var i = 0; i < cluesRepeater.model; i++) {
+            var clue = cluesRepeater.itemAt(i);
+            clue.text = clueTexts[i];
+        }
+    }
+
     Layout.minimumWidth: 200
     contentHeight: cluesHeader.height + cluesCol.height + cluesCol.anchors.topMargin + cluesCol.spacing
 
@@ -45,6 +69,7 @@ Flickable {
                 id: clueLabel
 
                 height: dummy.height
+                // need component.oncompleted?
                 text: {
                     if (colFlick.headerName == "Across") {
                         text = Utils.collectClueNums()[0][index]
@@ -76,6 +101,7 @@ Flickable {
                 width: Math.floor(colFlick.width * 2 / 3)
                 placeholderText: "Enter a clue..."
                 onEditingFinished: focus = false;
+                onTextChanged: root.stateChanged = true;
             }
         }
     }

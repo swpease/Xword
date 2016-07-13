@@ -9,6 +9,40 @@ ApplicationWindow {
     id: root
 
     property int extraHeight
+    property bool stateChanged: false
+    property string currentFileUrl
+    property string formerFileUrl
+
+    function overwriteFile() {
+        // Slot connected to C++ FIleIO fileExists() signal.
+        replaceDialog.open();
+    }
+
+    function afterSaving() {
+        /* Slot connected to C++ FileIO fileSaved() signal.
+          1. resets the stateChanged property
+          2. loads (if applicable) the pending file to open / newly make
+        */
+        root.stateChanged = false;
+
+        if(saveBeforeOpenDialog.pendingOpen == true) {
+            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
+            root.currentFileUrl = openDialog.fileUrl;
+            saveBeforeOpenDialog.pendingOpen = false;
+        }
+
+        if(saveBeforeNewDialog.pendingNew == true) {
+            startUpWindow.newGrid();
+            root.currentFileUrl = "";
+            saveBeforeNewDialog.pendingNew = false;
+        }
+    }
+
+    function save() {
+        /* Chooses whether or not the saveDialog needs to be shown.
+          */
+        currentFileUrl == "" ? saveDialog.open() : FileIO.on_save(currentFileUrl, Utils.saveData());
+    }
 
     visible: true
     title: qsTr("Crossword Maker 5100")
@@ -32,6 +66,25 @@ ApplicationWindow {
                     startUpWindow.raise();
                 }
             }
+            MenuItem {
+                text: qsTr("Open")
+                shortcut: StandardKey.Open
+                onTriggered: openDialog.open();
+            }
+            MenuSeparator { }
+            MenuItem {
+                text: qsTr("Save")
+                shortcut: StandardKey.Save
+                enabled: root.stateChanged;
+                onTriggered: root.save();
+            }
+
+            MenuItem {
+                text: qsTr("Save As")
+                shortcut: StandardKey.SaveAs
+                enabled: xGrid.rows == -1 ? false : true;
+                onTriggered: saveDialog.open();
+            }
         }
         Menu {
             title: qsTr("Edit")
@@ -45,13 +98,14 @@ ApplicationWindow {
                     clueEditor.visible = true;
                 }
             }
-//            MenuItem {
-//                text: qsTr("Resquareify")
-//                onTriggered: {
-//                    var contentHeight = root.height - root.extraHeight
-//                    root.width > contentHeight ? root.width = contentHeight : root.height = root.width + root.extraHeight
-//                }
-//            }
+            MenuSeparator { }
+            MenuItem {
+                text: qsTr("Resquareify")
+                onTriggered: {
+                    var contentHeight = root.height - root.extraHeight
+                    root.width > contentHeight ? root.width = contentHeight : root.height = root.width + root.extraHeight
+                }
+            }
         }
     }
 
@@ -78,13 +132,100 @@ ApplicationWindow {
         id: welcomeText
 
         anchors.centerIn: parent
-        text: "Welcome to the crossword puzzle editor!\nPress ⌘N or go to FILE → NEW to get started!"
+        text: "Welcome to the crossword puzzle editor!"
         horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
     }
 
-    StartUpWindow { id: startUpWindow }  // Window to set the size of the crossword
+    // FILE IO
+    FileDialog {
+        id: saveDialog
+        selectExisting: false
+        title: "Type a name for your file to save"
+        folder: shortcuts.home
+        onFileUrlChanged: {
+            root.formerFileUrl = root.currentFileUrl;
+            root.currentFileUrl = fileUrl;
+            FileIO.on_saveAs(fileUrl, Utils.saveData());
+        }
+    }
+
+    FileDialog {
+        id: openDialog
+        title: "Select a file to open:"
+        nameFilters: [ "Crossword files: (*.xwd)" ]
+        folder: shortcuts.home
+        onFileUrlChanged: {
+            if(root.stateChanged) {
+                saveBeforeOpenDialog.open();
+            } else {
+                Utils.loadData(FileIO.on_open(fileUrl));
+                root.currentFileUrl = fileUrl;
+            }
+        }
+    }
+
+    MessageDialog {
+        id: replaceDialog
+        icon: StandardIcon.Question
+        text: "A file with this name already exists. Do you want to replace it?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: FileIO.on_save(saveDialog.fileUrl, Utils.saveData());
+        onNo: {
+            root.currentFileUrl = root.formerFileUrl;
+            saveDialog.open();
+        }
+        onRejected: {
+            root.currentFileUrl = root.formerFileUrl;
+            // can remove below line.
+            root.stateChanged = true;
+        }
+    }
+
+    MessageDialog {
+        id: saveBeforeOpenDialog
+
+        property bool pendingOpen: false
+
+        icon: StandardIcon.Question
+        text: "There are unsaved changes to the current crossword. Do you want to save?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: {
+            pendingOpen = true;
+            root.save();
+        }
+        onNo: {
+            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
+            root.currentFileUrl = openDialog.fileUrl;
+            root.stateChanged = false;
+        }
+    }
+
+    MessageDialog {
+        id: saveBeforeNewDialog
+
+        property bool pendingNew: false
+
+        icon: StandardIcon.Question
+        text: "There are unsaved changes to the current crossword. Do you want to save?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: {
+            pendingNew = true;
+            root.save();
+        }
+        onNo: {
+            startUpWindow.newGrid();
+            root.currentFileUrl = "";
+        }
+        onRejected: startUpWindow.closeWindow();
+    }
+
+    // SETTING SIZE OF CROSSWORD
+    StartUpWindow {
+        id: startUpWindow
+        onSaveBeforeNew: saveBeforeNewDialog.open();
+    }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
@@ -98,7 +239,7 @@ ApplicationWindow {
         minimumWidth: acrossClues.Layout.minimumWidth + downClues.Layout.minimumWidth
         color: palette.window
 
-        Shortcut {  // This WORKS, so I'm not sure why it's misdiagnosing it.
+        Shortcut {
             sequence: StandardKey.Close
             onActivated: clueEditor.close()
         }
@@ -132,9 +273,17 @@ ApplicationWindow {
         visible: false
         width: 700
         height: 700
+        Component.onDestruction: {
+            if(root.stateChanged) {
+                //window about saving
+            }
+        }
 
         Grid {
             id: xGrid
+            // xGrid.rows and xGrid.columns set by:
+            //     (1) StartUpWindow.qml
+            //     (2) openDialog
 
             property bool autoMoveDown: false
             property string directionArrow: autoMoveDown ? "↓" : "→"
