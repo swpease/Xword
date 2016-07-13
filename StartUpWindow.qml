@@ -7,13 +7,29 @@ import QtQuick.Layouts 1.1
 Window {
     id: startUp
 
-    function closeWindow()
-    {
+    property bool pendingNew: false
+
+    signal saveBeforeNew
+
+    function closeWindow() {
         numHigh.value = 0;
         numWide.value = 0;
         numHigh.focus = false;
         numWide.focus = false;
         startUp.close();
+    }
+
+    function newGrid() {
+        // Reset the model to overwrite with a blank grid
+        xGrid.columns = 0;
+        xGrid.rows = 0;
+        //
+        xGrid.columns = numWide.value
+        xGrid.rows = numHigh.value
+        gridContainer.visible = true
+
+        root.stateChanged = true;
+        closeWindow();
     }
 
     visible: false
@@ -73,12 +89,12 @@ Window {
                     text: "OK"
                     isDefault: true
                     onClicked: {
-                        xGrid.columns = numWide.value
-                        xGrid.rows = numHigh.value
-                        gridContainer.visible = true
-
-                        root.stateChanged = true;
-                        closeWindow();
+                        if(root.stateChanged) {
+                            startUp.pendingNew = true;
+                            startUp.saveBeforeNew();
+                        } else {
+                            newGrid();
+                        }
                     }
                 }
 

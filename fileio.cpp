@@ -48,8 +48,9 @@ void FileIO::on_saveAs(QUrl url, QVariantList data, bool overwrite)
 
     QDataStream out(&file);
     out << data;
-
     file.close();
+
+    emit fileSaved();
 }
 
 void FileIO::on_save(QUrl url, QVariantList data)

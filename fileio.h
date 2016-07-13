@@ -16,6 +16,7 @@ public:
 
 signals:
     void fileExists();
+    void fileSaved();
 
 public slots:
     void on_saveAs(QUrl url, QVariantList data, bool overwrite = false);  // write as const T &?

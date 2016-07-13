@@ -9,19 +9,37 @@ ApplicationWindow {
     id: root
 
     property int extraHeight
-    property bool stateChanged: false  // changes to check: clues, box state, box letter, grid existence
+    property bool stateChanged: false
     property string currentFileUrl
     property string formerFileUrl
-    onCurrentFileUrlChanged: stateChanged = false;  // Can I just do this?
 
     function overwriteFile() {
         // Slot connected to C++ FIleIO fileExists() signal.
         replaceDialog.open();
     }
 
+    function afterSaving() {
+        /* Slot connected to C++ FileIO fileSaved() signal.
+          1. resets the stateChanged property
+          2. loads (if applicable) the pending file to open / newly make
+        */
+        root.stateChanged = false;
+
+        if(saveBeforeOpenDialog.pendingOpen == true) {
+            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
+            root.currentFileUrl = openDialog.fileUrl;
+            saveBeforeOpenDialog.pendingOpen = false;
+        }
+
+        if(saveBeforeNewDialog.pendingNew == true) {
+            startUpWindow.newGrid();
+            root.currentFileUrl = "";
+            saveBeforeNewDialog.pendingNew = false;
+        }
+    }
+
     function save() {
-        /* Chooses whether or not the saveDialog needs to be shown, depending
-          on the current state vs the prior state.
+        /* Chooses whether or not the saveDialog needs to be shown.
           */
         currentFileUrl == "" ? saveDialog.open() : FileIO.on_save(currentFileUrl, Utils.saveData());
     }
@@ -143,7 +161,7 @@ ApplicationWindow {
         folder: shortcuts.home
         onFileUrlChanged: {
             if(root.stateChanged) {
-                saveOnOpenDialog.open();
+                saveBeforeOpenDialog.open();
             } else {
                 Utils.loadData(FileIO.on_open(fileUrl));
                 root.currentFileUrl = fileUrl;
@@ -163,28 +181,54 @@ ApplicationWindow {
         }
         onRejected: {
             root.currentFileUrl = root.formerFileUrl;
-            replaceDialog.close();
+            // can remove below line.
+            root.stateChanged = true; // this isn't completely right. need to modify more heavily.
         }
     }
 
     MessageDialog {
-        id: saveOnOpenDialog
+        id: saveBeforeOpenDialog
+
+        property bool pendingOpen: false
+
         icon: StandardIcon.Question
         text: "There are unsaved changes to the current crossword. Do you want to save?"
         standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
         onYes: {
+            pendingOpen = true;
             root.save();
-            Utils.loadData(FileIO.on_open(openDialog.fileUrl));
-            root.currentFileUrl = openDialog.fileUrl;
         }
         onNo: {
             Utils.loadData(FileIO.on_open(openDialog.fileUrl));
             root.currentFileUrl = openDialog.fileUrl;
+            root.stateChanged = false;
         }
     }
 
+    MessageDialog {
+        id: saveBeforeNewDialog
+
+        property bool pendingNew: false
+
+        icon: StandardIcon.Question
+        text: "There are unsaved changes to the current crossword. Do you want to save?"
+        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+        onYes: {
+            pendingNew = true;
+            root.save();
+        }
+        onNo: {
+            startUpWindow.newGrid();
+            root.currentFileUrl = "";
+        }
+        onRejected: startUpWindow.closeWindow();
+    }
+
     // SETTING SIZE OF CROSSWORD
-    StartUpWindow { id: startUpWindow }
+    StartUpWindow {
+        id: startUpWindow
+        onSaveBeforeNew: saveBeforeNewDialog.open();
+    }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
