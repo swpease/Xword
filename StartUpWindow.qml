@@ -28,6 +28,7 @@ Window {
         xGrid.rows = numHigh.value
         gridContainer.visible = true
 
+        root.currentFileUrl = "";
         root.stateChanged = true;
         closeWindow();
     }

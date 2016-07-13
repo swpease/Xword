@@ -76,16 +76,13 @@ ApplicationWindow {
                 text: qsTr("Save")
                 shortcut: StandardKey.Save
                 enabled: root.stateChanged;
-                onTriggered: {
-                    root.save();
-                    root.stateChanged = false;
-                }
+                onTriggered: root.save();
             }
 
             MenuItem {
                 text: qsTr("Save As")
                 shortcut: StandardKey.SaveAs
-                enabled: xGrid.rows == -1 ? false : true;  // Alt: test if currentFileUrl is empty
+                enabled: xGrid.rows == -1 ? false : true;
                 onTriggered: saveDialog.open();
             }
         }
@@ -182,7 +179,7 @@ ApplicationWindow {
         onRejected: {
             root.currentFileUrl = root.formerFileUrl;
             // can remove below line.
-            root.stateChanged = true; // this isn't completely right. need to modify more heavily.
+            root.stateChanged = true;
         }
     }
 
