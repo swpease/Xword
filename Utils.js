@@ -19,17 +19,19 @@ for (var i = 0x41; i <= 0x5a; i++) {
 
 function saveData() {
     /* Saves a crossword.
-      Generates four arrays:
+      Generates five arrays:
           (1) The crossword dimensions [row, col]
           (2) The state ("" or "BLANKSPACE") of each Square
           (3) The letter of each Square
           (4) The clues for each word [[acrosses], [downs]]
+          (5) The metadata [puzzlename, date, author]
       */
 
     var dims = [xGrid.rows, xGrid.columns];
     var states = [];
     var letters = [];
     var clues = [];
+    var metadata = [metadataForm.puzzleName, metadataForm.date, metadataForm.author]
 
     for (var i = 0; i < xGrid.columns * xGrid.rows; i++) {
         var box = gridRepeater.itemAt(i);
@@ -40,7 +42,7 @@ function saveData() {
     clues.push(acrossClues.getCluesText());
     clues.push(downClues.getCluesText());
 
-    return [dims, states, letters, clues];
+    return [dims, states, letters, clues, metadata];
 }
 
 function loadData(cppData) {
@@ -52,12 +54,14 @@ function loadData(cppData) {
          (2) The state ("" or "BLANKSPACE")
          (3) The letter (if state == ""...)
          (4) The clues as an array of arrays [[across], [down]] (may be empty)
+         (5) The metadata as an array of strings
       */
 
     var dims = cppData[0];
     var states = cppData[1];
     var letters = cppData[2];
     var clues = cppData[3];
+    var metadata = cppData[4];
 
     xGrid.rows = dims[0];
     xGrid.columns = dims[1];
@@ -78,6 +82,10 @@ function loadData(cppData) {
         acrossClues.setCluesText(clues[0]);
         downClues.setCluesText(clues[1]);
     }
+
+    metadataForm.puzzleName = metadata[0];
+    metadataForm.date = metadata[1];
+    metadataForm.author = metadata[2];
 
     return;
 }

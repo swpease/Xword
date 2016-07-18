@@ -6,5 +6,6 @@
         <file>CluesColumn.qml</file>
         <file>StartUpWindow.qml</file>
         <file>Square.qml</file>
+        <file>MetadataForm.qml</file>
     </qresource>
 </RCC>
