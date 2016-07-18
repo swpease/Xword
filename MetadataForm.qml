@@ -1,12 +1,19 @@
 import QtQuick 2.5
 import QtQuick.Controls 1.4
-import QtQuick.Layouts 1.2
+import QtQuick.Dialogs 1.2
+import QtQuick.Window 2.2
+import QtQuick.Layouts 1.1
 
-Item {
-    width: 300
+Window {
+    id: metaData
+
+    property alias puzzleName: puzzleNameText.text
+    property alias date: dateText.text
+    property alias author: authorText.text
+
+    visible: false
     height: 170
-    visible: true
-
+    width: 300
 
     ColumnLayout {
         id: columnLayout1
@@ -39,29 +46,25 @@ Item {
         width: 170
         height: 153
 
-        TextInput {
-            id: textInput1
+        TextField {
+            id: puzzleNameText
             width: 80
             height: 20
-            text: qsTr("Text Input")
             font.pixelSize: 12
         }
 
-        TextInput {
-            id: textInput2
+        TextField {
+            id: dateText
             width: 80
             height: 20
-            text: qsTr("Text Input")
             font.pixelSize: 12
         }
 
-        TextInput {
-            id: textInput3
+        TextField {
+            id: authorText
             width: 80
             height: 20
-            text: qsTr("Text Input")
             font.pixelSize: 12
         }
     }
 }
-

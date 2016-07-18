@@ -45,7 +45,7 @@ ApplicationWindow {
     }
 
     visible: true
-    title: qsTr("Crossword Maker 5100")
+    title: metadataForm.puzzleName == "" ? qsTr("Crossword Maker 5100") : metadataForm.puzzleName;
     color: palette.window
     contentItem {
         implicitWidth: gridContainer.width
@@ -98,6 +98,11 @@ ApplicationWindow {
                     clueEditor.visible = true;
                 }
             }
+            MenuItem {
+                text: qsTr("Puzzle Info")
+                onTriggered: metadataForm.visible = true;
+            }
+
             MenuSeparator { }
             MenuItem {
                 text: qsTr("Resquareify")
@@ -226,6 +231,10 @@ ApplicationWindow {
         id: startUpWindow
         onSaveBeforeNew: saveBeforeNewDialog.open();
     }
+
+    // CROSSWORD METADATA
+    MetadataForm { id: metadataForm }
+//    MainForm { id: metadataForm }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
