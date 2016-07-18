@@ -85,6 +85,16 @@ ApplicationWindow {
                 enabled: xGrid.rows == -1 ? false : true;
                 onTriggered: saveDialog.open();
             }
+            MenuSeparator { }
+            MenuItem {
+                text: qsTr("Export to PDF")
+                shortcut: StandardKey.Print
+                onTriggered: gridContainer.grabToImage(function(result) {
+//                    result.saveToFile("/Users/Scott/test_image.png");
+                    ExportPDF.export_pdf(result.image);
+                });
+
+            }
         }
         Menu {
             title: qsTr("Edit")
