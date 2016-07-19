@@ -3,6 +3,7 @@
   */
 
 var BLACK = "#000000"
+var WHITE = "#ffffff"
 var DARKGREY = "#333333"
 var BLUE = "#0000ff"
 var LIGHTBLUE = "#6060ff"
@@ -18,31 +19,41 @@ for (var i = 0x41; i <= 0x5a; i++) {
   */
 
 function saveData() {
-    /* Saves a crossword.
-      Generates five arrays:
+    /* Collects the data needed to save the crossword's current state:
+      returns [dims, states, letters, clues, metadata]
+      */
+    return collectData().slice(0,5);
+}
+
+function collectData() {
+    /* Collects data from a crossword.
+      Generates six arrays:
           (1) The crossword dimensions [row, col]
           (2) The state ("" or "BLANKSPACE") of each Square
           (3) The letter of each Square
           (4) The clues for each word [[acrosses], [downs]]
           (5) The metadata [puzzlename, date, author]
+          (6) The number for each Square
       */
 
-    var dims = [xGrid.rows, xGrid.columns];
+    var dims = [xWord.rows, xWord.columns];
     var states = [];
     var letters = [];
     var clues = [];
     var metadata = [metadataForm.puzzleName, metadataForm.date, metadataForm.author]
+    var numbers = [];
 
-    for (var i = 0; i < xGrid.columns * xGrid.rows; i++) {
-        var box = gridRepeater.itemAt(i);
+    for (var i = 0; i < xWord.columns * xWord.rows; i++) {
+        var box = xWord.gridRepeater.itemAt(i);
         states.push(box.state);
         letters.push(box.letter);
+        numbers.push(box.number);
     }
 
     clues.push(acrossClues.getCluesText());
     clues.push(downClues.getCluesText());
 
-    return [dims, states, letters, clues, metadata];
+    return [dims, states, letters, clues, metadata, numbers];
 }
 
 function loadData(cppData) {
@@ -63,17 +74,17 @@ function loadData(cppData) {
     var clues = cppData[3];
     var metadata = cppData[4];
 
-    xGrid.rows = dims[0];
-    xGrid.columns = dims[1];
+    xWord.rows = dims[0];
+    xWord.columns = dims[1];
 
-    for (var i = 0; i < xGrid.columns * xGrid.rows; i++) {
-        var box = gridRepeater.itemAt(i);
+    for (var i = 0; i < xWord.columns * xWord.rows; i++) {
+        var box = xWord.gridRepeater.itemAt(i);
         box.letter = letters[i];
         box.state = states[i];
     }
-    assignNums(xGrid.rows, xGrid.columns);
+    assignNums(xWord.rows, xWord.columns);
 
-    gridContainer.visible = true;
+    xWord.visible = true;
 
     if(clues == true) {
         var numClues = numberOfClues();
@@ -99,15 +110,15 @@ function numberOfClues() {
     var acrossClues = 0;
     var downClues = 0;
 
-    for (var i = 0; i < xGrid.columns * xGrid.rows; i++) {
+    for (var i = 0; i < xWord.columns * xWord.rows; i++) {
 
-        var box = gridRepeater.itemAt(i);
+        var box = xWord.gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).state == "BLANKSPACE") {
+            if (i < xWord.columns || xWord.gridRepeater.itemAt(i - xWord.columns).state == "BLANKSPACE") {
                 downClues += 1;
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
+            if (i % xWord.columns == 0 || xWord.gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
                 acrossClues += 1;
             }
         }
@@ -133,16 +144,16 @@ function collectClueNums() {
     //var acrossBoxNums = [];  // for if I want to do some fancy stuff later
     //var downBoxNums = [];  // ""
 
-    for (var i = 0; i < xGrid.columns * xGrid.rows; i++) {
+    for (var i = 0; i < xWord.columns * xWord.rows; i++) {
 
-        var box = gridRepeater.itemAt(i);
+        var box = xWord.gridRepeater.itemAt(i);
 
         if (box.number != "") {
-            if (i < xGrid.columns || gridRepeater.itemAt(i - xGrid.columns).state == "BLANKSPACE") {
+            if (i < xWord.columns || xWord.gridRepeater.itemAt(i - xWord.columns).state == "BLANKSPACE") {
                 downClueNums.push(box.number);
                 //downBoxNums.push(box.constIndex);  // just put i?
             }
-            if (i % xGrid.columns == 0 || gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
+            if (i % xWord.columns == 0 || xWord.gridRepeater.itemAt(i - 1).state == "BLANKSPACE") {
                 acrossClueNums.push(box.number);
                 //acrossBoxNums.push(box.constIndex); // just put i?
             }
@@ -162,7 +173,7 @@ function assignNums(rows, cols) {
     var num = 1; // The number to actually assign to the box
 
     for (var i = 0; i < rows * cols; i++) {
-        var box = gridRepeater.itemAt(i);
+        var box = xWord.gridRepeater.itemAt(i);
 
         if (box.state == "BLANKSPACE") {
             box.number = "";
@@ -173,8 +184,8 @@ function assignNums(rows, cols) {
                 box.number = num;  // Does QML do automatic type coercion? YES
                 num += 1;
             } else {
-                var boxAbove = gridRepeater.itemAt(i - cols);
-                var boxToLeft = gridRepeater.itemAt(i - 1);
+                var boxAbove = xWord.gridRepeater.itemAt(i - cols);
+                var boxToLeft = xWord.gridRepeater.itemAt(i - 1);
 
                 if (boxAbove.state == "BLANKSPACE" || boxToLeft.state == "BLANKSPACE") {
                     box.number = num;
@@ -200,8 +211,8 @@ function blackWhite(box) {
     box.state == "" ? box.state = "BLANKSPACE" : box.state = "";
 
     if (symmetric.checked) {
-        var maxIndex = (xGrid.columns * xGrid.rows) - 1;
-        var symmetricBox = gridRepeater.itemAt(maxIndex - box.constIndex);
+        var maxIndex = (xWord.columns * xWord.rows) - 1;
+        var symmetricBox = xWord.gridRepeater.itemAt(maxIndex - box.constIndex);
 
         if (symmetricBox.state == box.state)
                return
@@ -218,13 +229,13 @@ function autoMove(box) {
       by click, not resetting if a click was made to a new box
       box: the box that currently has focus
       */
-    if (!xGrid.autoMoveDown) {
-        if (box.constIndex % xGrid.columns !== (xGrid.columns - 1)) {
-            gridRepeater.itemAt(box.constIndex + 1).focus = true;
+    if (!xWord.autoMoveDown) {
+        if (box.constIndex % xWord.columns !== (xWord.columns - 1)) {
+            xWord.gridRepeater.itemAt(box.constIndex + 1).focus = true;
         }
-    } else if (xGrid.autoMoveDown) {
-        if (box.constIndex < (xGrid.columns * xGrid.rows) - xGrid.columns) {
-            gridRepeater.itemAt(box.constIndex + xGrid.columns).focus = true;
+    } else if (xWord.autoMoveDown) {
+        if (box.constIndex < (xWord.columns * xWord.rows) - xWord.columns) {
+            xWord.gridRepeater.itemAt(box.constIndex + xWord.columns).focus = true;
         }
     }
 
@@ -260,26 +271,26 @@ function keysMove(event, index) {
 
 //Helper functions for moving around.
 function moveUp(event, index) {
-    if (index >= xGrid.columns) {
-        gridRepeater.itemAt(index - xGrid.columns).focus = true
+    if (index >= xWord.columns) {
+        xWord.gridRepeater.itemAt(index - xWord.columns).focus = true
     }
 }
 
 function moveDown(event, index) {
-    if (index < (xGrid.columns * xGrid.rows) - xGrid.columns) {
-        gridRepeater.itemAt(index + xGrid.columns).focus = true
+    if (index < (xWord.columns * xWord.rows) - xWord.columns) {
+        xWord.gridRepeater.itemAt(index + xWord.columns).focus = true
     }
 }
 
 function moveRight(event, index) {
-    if (index % xGrid.columns !== (xGrid.columns - 1)) {
-        gridRepeater.itemAt(index + 1).focus = true
+    if (index % xWord.columns !== (xWord.columns - 1)) {
+        xWord.gridRepeater.itemAt(index + 1).focus = true
     }
 }
 
 function moveLeft(event, index) {
-    if (index % xGrid.columns !== 0) {
-        gridRepeater.itemAt(index - 1).focus = true
+    if (index % xWord.columns !== 0) {
+        xWord.gridRepeater.itemAt(index - 1).focus = true
     }
 }
 // End helper functions

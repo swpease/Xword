@@ -48,8 +48,8 @@ ApplicationWindow {
     title: metadataForm.puzzleName == "" ? qsTr("Crossword Maker 5100") : metadataForm.puzzleName;
     color: palette.window
     contentItem {
-        implicitWidth: gridContainer.width
-        implicitHeight: gridContainer.height
+        implicitWidth: xWord.width
+        implicitHeight: xWord.height
         minimumWidth: 100
         minimumHeight: 100
     }
@@ -82,17 +82,23 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("Save As")
                 shortcut: StandardKey.SaveAs
-                enabled: xGrid.rows == -1 ? false : true;
+                enabled: xWord.rows == -1 ? false : true;
                 onTriggered: saveDialog.open();
             }
             MenuSeparator { }
             MenuItem {
                 text: qsTr("Export to PDF")
                 shortcut: StandardKey.Print
-                onTriggered: gridContainer.grabToImage(function(result) {
-//                    result.saveToFile("/Users/Scott/test_image.png");
-                    ExportPDF.export_pdf(result.image);
-                });
+                onTriggered:  {
+                    pdfXwordBlank.setDataForPdf(pdfXwordBlank.getDataForPdf());
+                    pdfXwordBlank.grabToImage(function(blankXword) {
+                       ExportPDF.export_pdf(blankXword.image);
+                    });
+//                    xWord.grabToImage(function(result) {
+////                    result.saveToFile("/Users/Scott/test_image.png");
+//                    ExportPDF.export_pdf(result.image);
+//                });
+                }
 
             }
         }
@@ -244,7 +250,6 @@ ApplicationWindow {
 
     // CROSSWORD METADATA
     MetadataForm { id: metadataForm }
-//    MainForm { id: metadataForm }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
@@ -286,39 +291,24 @@ ApplicationWindow {
     }
 
     // THE ACTUAL CROSSWORD GRID
-    Item {
-        id: gridContainer
+    CrosswordGrid {
+        id: xWord
 
-        visible: false
-        width: 700
-        height: 700
-        Component.onDestruction: {
-            if(root.stateChanged) {
-                //window about saving
-            }
-        }
+        width: 700; height: 700;
+    }
 
-        Grid {
-            id: xGrid
-            // xGrid.rows and xGrid.columns set by:
-            //     (1) StartUpWindow.qml
-            //     (2) openDialog
+    // FOR PDF EXPORTING
+    CrosswordGrid {
+        id: pdfXwordBlank
 
-            property bool autoMoveDown: false
-            property string directionArrow: autoMoveDown ? "↓" : "→"
+        forExporting: true
+        forFillingIn: true
+    }
 
-            Repeater {
-                id: gridRepeater
+    CrosswordGrid {
+        id: pdfXwordAnswers
 
-                model: parent.columns * parent.rows
-                onItemAdded: {
-                    // Only perform after the grid has been assembled.
-                    if (index + 1 == xGrid.rows * xGrid.columns)
-                        Utils.assignNums(xGrid.rows, xGrid.columns)
-                }
-
-                Square { }
-            }
-        }
+        forExporting: true
+        rotation: 180
     }
 }
