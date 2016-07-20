@@ -13,6 +13,18 @@ ApplicationWindow {
     property string currentFileUrl
     property string formerFileUrl
 
+    function concat_clues(clues, nums) {
+        /* Combines the clue numbers and clues into an array of strings
+          for pdf exporting.
+          */
+        var formatted_clues = []
+        for(var i = 0; i < clues.length; i++) {
+            var text_concat = "<b>" + nums[i] + "</b>  " + clues[i];
+            formatted_clues.push(text_concat);
+        }
+        return formatted_clues;
+    }
+
     function overwriteFile() {
         // Slot connected to C++ FIleIO fileExists() signal.
         replaceDialog.open();
@@ -90,16 +102,33 @@ ApplicationWindow {
                 text: qsTr("Export to PDF")
                 shortcut: StandardKey.Print
                 onTriggered:  {
-                    pdfXwordBlank.setDataForPdf(pdfXwordBlank.getDataForPdf());
-                    pdfXwordBlank.grabToImage(function(blankXword) {
-                       ExportPDF.export_pdf(blankXword.image);
-                    });
-//                    xWord.grabToImage(function(result) {
-////                    result.saveToFile("/Users/Scott/test_image.png");
-//                    ExportPDF.export_pdf(result.image);
-//                });
-                }
+                    var text_data = Utils.getCluesAndInfo();  // [clues, metadata, numbers]
+                    var across_clues = text_data[0][0]
+                    var down_clues = text_data[0][1]
+                    var across_nums = Utils.collectClueNums()[0]
+                    var down_nums = Utils.collectClueNums()[1]
 
+                    var formatted_acrosses = concat_clues(across_clues, across_nums);
+                    var formatted_downs = concat_clues(down_clues, down_nums);
+                    formatted_acrosses.unshift("ACROSS");
+                    formatted_downs.unshift("DOWN");
+
+                    ExportPDF.add_clues(formatted_acrosses, formatted_downs);  // adding clues
+                    ExportPDF.add_metadata(text_data[1])  // adding metadata list
+
+
+                    pdfXwordBlank.setDataForPdf(pdfXwordBlank.getDataForPdf());
+                    pdfXwordAnswers.setDataForPdf(pdfXwordAnswers.getDataForPdf());
+
+                    pdfXwordBlank.grabToImage(function(blankXword) {
+                        ExportPDF.add_image(blankXword.image);
+                    });
+                    pdfXwordAnswers.grabToImage(function(answersXword) {
+                        ExportPDF.add_image(answersXword.image);
+
+                        ExportPDF.export_pdf();  // The actual printing function.
+                    });
+                }
             }
         }
         Menu {
@@ -309,6 +338,6 @@ ApplicationWindow {
         id: pdfXwordAnswers
 
         forExporting: true
-        rotation: 180
+//        rotation: 180 Doesn't carry over to the QImage.
     }
 }

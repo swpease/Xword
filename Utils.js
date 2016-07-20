@@ -13,10 +13,15 @@ for (var i = 0x41; i <= 0x5a; i++) {
     KEYS.push(i)
 }
 
-
 /*
   FUNCTIONS
   */
+
+function getCluesAndInfo() {
+    /* Collects the metadata and the clues from the crossword for pdf exporting.
+      */
+    return collectData().slice(3,5);
+}
 
 function saveData() {
     /* Collects the data needed to save the crossword's current state:
@@ -86,7 +91,7 @@ function loadData(cppData) {
 
     xWord.visible = true;
 
-    if(clues == true) {
+    if(clues != []) {
         var numClues = numberOfClues();
         acrossClues.model = numClues[0];
         downClues.model = numClues[1];

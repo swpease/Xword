@@ -44,7 +44,7 @@ Item {
 
         for (var i = 0; i < gridContainer.columns * gridContainer.rows; i++) {
             var box = gridRepeater.itemAt(i);
-            box.state = states[i];
+//            box.state = states[i];
             box.number = numbers[i];
             if(!gridContainer.forFillingIn) {
                 box.letter = letters[i];

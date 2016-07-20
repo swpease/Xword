@@ -13,10 +13,20 @@ class Export : public QObject
 public:
     explicit Export(QObject *parent = 0);
 
+    Q_INVOKABLE void add_image(QVariant image);
+    Q_INVOKABLE void add_metadata(QVariantList text);
+    Q_INVOKABLE void add_clues(QVariantList acrosses, QVariantList downs);
+    Q_INVOKABLE void export_pdf();
+
 signals:
 
 public slots:
-    void export_pdf(QVariant image);
+
+private:
+    QVariantList m_images;
+    QVariantList m_metadata;
+    QVariantList m_acrosses;
+    QVariantList m_downs;
 };
 
 #endif // EXPORT_H
