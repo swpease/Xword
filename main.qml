@@ -19,7 +19,7 @@ ApplicationWindow {
           */
         var formatted_clues = []
         for(var i = 0; i < clues.length; i++) {
-            var text_concat = "<b>" + nums[i] + "</b>  " + clues[i];
+            var text_concat = nums[i] + ".  " + clues[i];
             formatted_clues.push(text_concat);
         }
         return formatted_clues;
