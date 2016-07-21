@@ -27,6 +27,8 @@ private:
     QVariantList m_metadata;
     QVariantList m_acrosses;
     QVariantList m_downs;
+
+    void paint_clues(QVariantList clues);
 };
 
 #endif // EXPORT_H
