@@ -11,7 +11,6 @@ Export::Export(QObject *parent) : QObject(parent)
 
 void Export::add_image(QVariant image)
 {
-//    QImage img = qvariant_cast<QImage>(image);   // is this necessary? image.typename is already QImage
     m_images.append(image);
 }
 
@@ -37,7 +36,6 @@ void Export::export_pdf()
     int twelve_point = 200;
     int total_width = 9583;
     int total_height = 13699;
-//    int remaining_width = total_width;
     int remaining_height = total_height;
     int puzzle_width = 5000;
     int puzzle_height = puzzle_width;
@@ -51,10 +49,19 @@ void Export::export_pdf()
     QRect title_rect(0, 0, total_width, (twelve_point * 2));
     remaining_height -= (twelve_point * 2);
 
-    QPoint info_top_left(title_rect.left(), (title_rect.bottom() + 100));
+    QPoint info_top_left(0, (title_rect.bottom() + 100));
     QSize author_date_size((total_width - puzzle_width), twelve_point);
     QRect author_date_rect(info_top_left, author_date_size);
     remaining_height -= (twelve_point + 100);
+
+    //clues  -- maybe move this part UP?
+    QPoint clues_col_top_left(0, (author_date_rect.bottom() + 300));
+    remaining_height -= 300;
+    QSize clues_col_size(1300, remaining_height);
+    QRect whole_clues_col(clues_col_top_left, clues_col_size);
+    QRect eaten_clues_col = whole_clues_col;
+    int col_shift = 228;  // (9583 - puzwidth) / 3, split b/w the clues_col_size and this.
+    int col_num = 1;
 
     //puzzles
     QImage puzzle = qvariant_cast<QImage>(m_images.takeAt(0));
@@ -72,12 +79,13 @@ void Export::export_pdf()
     QPdfWriter pdf(base_path + file_name);
     QPainter painter;
 
-    // getting info on available space in the appropriate units
-    QPageLayout layout = pdf.pageLayout();
-    int resolution = pdf.resolution();
-    QRect printable_rect = layout.paintRectPixels(resolution);
+    // getting info on available space in the appropriate units (used for the seemingly random
+    // numbers for the constants at the start of the function).
+//    QPageLayout layout = pdf.pageLayout();
+//    int resolution = pdf.resolution();
+//    QRect printable_rect = layout.paintRectPixels(resolution);
 
-    painter.begin(&pdf);  // BEGIN PAINTING
+    painter.begin(&pdf);
 
     // make the title
     QFont font = painter.font();
@@ -93,92 +101,37 @@ void Export::export_pdf()
     painter.setFont(font);
     painter.drawText(author_date_rect, author_date);
 
-    //clues
-    QPoint clues_col_top_left(0, (author_date_rect.bottom() + 300));
-    remaining_height -= 300;
-    QSize clues_col_size(1300, remaining_height);
-    QRect whole_clues_col(clues_col_top_left, clues_col_size);
-    QRect eaten_clues_col = whole_clues_col;
-    int col_shift = 228;  // (9583 - puzwidth) / 3, split b/w the clues_col_size and this.
-    int col_num = 1;
-
-    QString across = qvariant_cast<QString>(m_acrosses.takeAt(0));
-
-    // make clues list
+    // across header
     font.setPixelSize(150);
     font.setBold(true);
     font.setItalic(false);
     painter.setFont(font);
 
-    QRect space_needed = painter.boundingRect(eaten_clues_col, Qt::TextWordWrap, across);
-    painter.drawText(eaten_clues_col, Qt::TextWordWrap, across, &space_needed);
-    QPoint updated_top_left = space_needed.bottomLeft();
-    eaten_clues_col.setTopLeft(updated_top_left);
+    QString across_header = qvariant_cast<QString>(m_acrosses.takeAt(0));
+    QRect space_needed = painter.boundingRect(eaten_clues_col, Qt::TextWordWrap, across_header);
+    draw_clue(painter, eaten_clues_col, across_header, space_needed, Qt::AlignHCenter);
+    eaten_clues_col.setTop(eaten_clues_col.top() + 100);  //ref: Export::paint_clues
 
+    // across clues
     font.setBold(false);
     painter.setFont(font);
+    paint_clues(painter, eaten_clues_col, m_acrosses, col_num, whole_clues_col, col_shift, puz_rect);
 
-    foreach(QVariant across_clue, m_acrosses) {
-        QString clue = qvariant_cast<QString>(across_clue);
-        QRect space_needed = painter.boundingRect(eaten_clues_col, Qt::TextWordWrap, clue);
-        if(space_needed.bottom() > eaten_clues_col.bottom()) {
-            col_num += 1;
-            eaten_clues_col = whole_clues_col;
-            eaten_clues_col.setLeft(eaten_clues_col.right() + col_shift); // will this work?
-            eaten_clues_col.setRight(eaten_clues_col.right() + col_shift + whole_clues_col.width());
-            if(col_num > 3) {
-                eaten_clues_col.setTop(puz_rect.bottom() + 300);
-            }
-            whole_clues_col = eaten_clues_col;
-
-        }
-        painter.drawText(eaten_clues_col, Qt::TextWordWrap, clue, &space_needed);
-        QPoint updated_top_left = space_needed.bottomLeft();
-        eaten_clues_col.setTopLeft(updated_top_left);
-    }
-
-    QString down = qvariant_cast<QString>(m_downs.takeAt(0));
+    // down header
+    QVariantList down_header;
+    down_header.append(m_downs.takeAt(0));  // is there a better way?
 
     font.setBold(true);
     painter.setFont(font);
-    space_needed = painter.boundingRect(eaten_clues_col, Qt::TextWordWrap, down);  //scope in confusing...
-    if(space_needed.bottom() > eaten_clues_col.bottom()) {
-        col_num += 1;
-        eaten_clues_col = whole_clues_col;
-        eaten_clues_col.setLeft(eaten_clues_col.right() + col_shift); // will this work?
-        eaten_clues_col.setRight(eaten_clues_col.right() + col_shift + whole_clues_col.width());
-        if(col_num > 3) {
-            eaten_clues_col.setTop(puz_rect.bottom() + 300);
-        }
-        whole_clues_col = eaten_clues_col;
-    }
-    painter.drawText(eaten_clues_col, Qt::TextWordWrap, down, &space_needed);
-    updated_top_left = space_needed.bottomLeft();
-    eaten_clues_col.setTopLeft(updated_top_left);
+    paint_clues(painter, eaten_clues_col, down_header, col_num, whole_clues_col,
+                col_shift, puz_rect, Qt::AlignHCenter);
 
+    // down clues
     font.setBold(false);
     painter.setFont(font);
+    paint_clues(painter, eaten_clues_col, m_downs, col_num, whole_clues_col, col_shift, puz_rect);
 
-    foreach(QVariant down_clue, m_downs) {
-        QString clue = qvariant_cast<QString>(down_clue);
-        QRect space_needed = painter.boundingRect(eaten_clues_col, Qt::TextWordWrap, clue);
-        if(space_needed.bottom() > eaten_clues_col.bottom()) {
-            col_num += 1;
-            eaten_clues_col = whole_clues_col;
-            eaten_clues_col.setLeft(eaten_clues_col.right() + col_shift); // will this work?
-            eaten_clues_col.setRight(eaten_clues_col.right() + col_shift + whole_clues_col.width());
-            if(col_num > 3) {
-                eaten_clues_col.setTop(puz_rect.bottom() + 300);
-            }
-            whole_clues_col = eaten_clues_col;
-
-        }
-        painter.drawText(eaten_clues_col, Qt::TextWordWrap, clue, &space_needed);
-        QPoint updated_top_left = space_needed.bottomLeft();
-        eaten_clues_col.setTopLeft(updated_top_left);
-    }
-
-
+    // images
     painter.drawImage(puz_rect, puzzle);
     pdf.newPage();
     painter.drawImage(ans_rect, puz_ans);
@@ -186,7 +139,33 @@ void Export::export_pdf()
     painter.end();
 }
 
-void Export::paint_clues(QVariantList clues)
+void Export::paint_clues(QPainter &painter, QRect &eaten_clues_col, QVariantList clues_list,
+                         int &col_num, QRect &whole_clues_col, const int &col_shift, const QRect &puz_rect,
+                         int alignment)
 {
+    foreach(QVariant raw_clue, clues_list) {
+        QString clue = qvariant_cast<QString>(raw_clue);
+        QRect space_needed = painter.boundingRect(eaten_clues_col, alignment, clue);
+        if(space_needed.bottom() > eaten_clues_col.bottom()) {
+            col_num += 1;
+            eaten_clues_col = whole_clues_col;
+            eaten_clues_col.setLeft(eaten_clues_col.right() + col_shift);
+            eaten_clues_col.setRight(eaten_clues_col.right() + col_shift + whole_clues_col.width());
+            if(col_num > 3) {
+                eaten_clues_col.setTop(puz_rect.bottom() + 300);
+            }
+            whole_clues_col = eaten_clues_col;
+        }
+        draw_clue(painter, eaten_clues_col, clue, space_needed, alignment);
+    }
+    eaten_clues_col.setTop(eaten_clues_col.top() + 100);  //ref: across header section
+}
 
+void Export::draw_clue(QPainter &painter, QRect &eaten_clues_col, const QString &text,
+                       QRect &space_needed, int alignment)
+{
+    painter.drawText(eaten_clues_col, alignment, text, &space_needed);
+    int updated_top = space_needed.bottom();
+    QPoint updated_top_left(eaten_clues_col.left(), updated_top);
+    eaten_clues_col.setTopLeft(updated_top_left);
 }
