@@ -1,5 +1,7 @@
 TEMPLATE = app
 
+TARGET = Xword
+
 QT += qml quick widgets
 
 SOURCES += main.cpp \
