@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     QObject *rootObject = engine.rootObjects().first();
     QObject::connect(&fileIO, SIGNAL(fileExists()), rootObject, SLOT(overwriteFile()));
     QObject::connect(&fileIO, SIGNAL(fileSaved()), rootObject, SLOT(afterSaving()));
+    QObject::connect(&exportPDF, SIGNAL(export_completed(QVariant)), rootObject, SLOT(displayPdfLocation(QVariant)));
 
     return app.exec();
 }

@@ -19,6 +19,7 @@ public:
     Q_INVOKABLE void export_pdf(int columns);
 
 signals:
+    void export_completed(QVariant file_name);
 
 public slots:
 

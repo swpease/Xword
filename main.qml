@@ -25,6 +25,12 @@ ApplicationWindow {
         return formatted_clues;
     }
 
+    function displayPdfLocation(fileName) {
+        // Slot connected to C++ Export export_completed(QVariant) signal.
+        pdfDialog.informativeText = fileName;
+        pdfDialog.open();
+    }
+
     function overwriteFile() {
         // Slot connected to C++ FIleIO fileExists() signal.
         replaceDialog.open();
@@ -185,6 +191,16 @@ ApplicationWindow {
         horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
+    }
+
+    // Exporting PDF
+    MessageDialog {
+        id: pdfDialog
+
+        title: "Crossword Successfully Exported"
+        text: "Your crossword was saved to the following location: "
+        icon: StandardIcon.Information
+        standardButtons: StandardButton.Ok
     }
 
     // FILE IO

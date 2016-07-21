@@ -137,6 +137,8 @@ void Export::export_pdf(int columns)
     painter.drawImage(ans_rect, puz_ans);
 
     painter.end();
+
+    emit export_completed(file_name);
 }
 
 void Export::paint_clues(QPainter &painter, QRect &eaten_clues_col, QVariantList clues_list,
