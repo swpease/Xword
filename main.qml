@@ -125,7 +125,7 @@ ApplicationWindow {
                     pdfXwordAnswers.grabToImage(function(answersXword) {
                         ExportPDF.add_image(answersXword.image);
 
-                        ExportPDF.export_pdf();  // The actual printing function.
+                        ExportPDF.export_pdf(xWord.columns);  // The actual printing function.
                     });
                 }
             }

@@ -9,7 +9,7 @@ Item {
     id: gridContainer
 
     property bool forExporting: false
-    property bool forFillingIn: false  // is someone supposed to be doing the crossword?
+    property bool forFillingIn: false
     property bool autoMoveDown: false
     property string directionArrow: autoMoveDown ? "↓" : "→"
     property alias rows: xGrid.rows
@@ -22,10 +22,7 @@ Item {
         var partA = Utils.collectData().slice(0, 3);
         var partB = Utils.collectData().pop();
 
-//        console.log(partA[0], partA[1], partA[2]);
         partA.push(partB);
-//        console.log(partA[0], partA[1], partA[2], partA[3]);
-//        console.log(partB);
 
         return partA;
     }

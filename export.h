@@ -16,7 +16,7 @@ public:
     Q_INVOKABLE void add_image(QVariant image);
     Q_INVOKABLE void add_metadata(QVariantList text);
     Q_INVOKABLE void add_clues(QVariantList acrosses, QVariantList downs);
-    Q_INVOKABLE void export_pdf();
+    Q_INVOKABLE void export_pdf(int columns);
 
 signals:
 
@@ -29,7 +29,7 @@ private:
     QVariantList m_downs;
 
     void paint_clues(QPainter &painter, QRect &eaten_clues_col, QVariantList clues_list, int &col_num,
-                     QRect &whole_clues_col, const int &col_shift, const QRect &puz_rect,
+                     QRect &whole_clues_col, const int &col_gap, const QRect &puz_rect,
                      int alignment = Qt::TextWordWrap);
 
     void draw_clue(QPainter &painter, QRect &eaten_clues_col, const QString &text,

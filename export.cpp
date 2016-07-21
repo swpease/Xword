@@ -25,11 +25,8 @@ void Export::add_clues(QVariantList acrosses, QVariantList downs)
     m_downs = downs;
 }
 
-void Export::export_pdf()
+void Export::export_pdf(int columns)
 {
-    // NOTE: for rich text painting, use QTextDocument::drawContents
-    // painter will only support plaintext.
-
     // 1200 dpi -> 200 dpi ~ 12pt font;
     // dims: 9583 x 13699
 
@@ -37,8 +34,13 @@ void Export::export_pdf()
     int total_width = 9583;
     int total_height = 13699;
     int remaining_height = total_height;
-    int puzzle_width = 5000;
+    int puzzle_width = columns > 15 ? 6000 : 5000;
     int puzzle_height = puzzle_width;
+    int clues_three_cols_width = total_width - puzzle_width;
+    int clues_col_width_w_gap = clues_three_cols_width / 3;
+    int col_gap = 225;  // empirically determined
+    int clues_col_width = clues_col_width_w_gap - col_gap;
+    int col_num = 1;
 
     //metadata
     QString title = qvariant_cast<QString>(m_metadata.takeAt(0));
@@ -54,14 +56,12 @@ void Export::export_pdf()
     QRect author_date_rect(info_top_left, author_date_size);
     remaining_height -= (twelve_point + 100);
 
-    //clues  -- maybe move this part UP?
+    //clues
     QPoint clues_col_top_left(0, (author_date_rect.bottom() + 300));
     remaining_height -= 300;
-    QSize clues_col_size(1300, remaining_height);
+    QSize clues_col_size(clues_col_width, remaining_height);
     QRect whole_clues_col(clues_col_top_left, clues_col_size);
     QRect eaten_clues_col = whole_clues_col;
-    int col_shift = 228;  // (9583 - puzwidth) / 3, split b/w the clues_col_size and this.
-    int col_num = 1;
 
     //puzzles
     QImage puzzle = qvariant_cast<QImage>(m_images.takeAt(0));
@@ -115,7 +115,7 @@ void Export::export_pdf()
     // across clues
     font.setBold(false);
     painter.setFont(font);
-    paint_clues(painter, eaten_clues_col, m_acrosses, col_num, whole_clues_col, col_shift, puz_rect);
+    paint_clues(painter, eaten_clues_col, m_acrosses, col_num, whole_clues_col, col_gap, puz_rect);
 
     // down header
     QVariantList down_header;
@@ -124,12 +124,12 @@ void Export::export_pdf()
     font.setBold(true);
     painter.setFont(font);
     paint_clues(painter, eaten_clues_col, down_header, col_num, whole_clues_col,
-                col_shift, puz_rect, Qt::AlignHCenter);
+                col_gap, puz_rect, Qt::AlignHCenter);
 
     // down clues
     font.setBold(false);
     painter.setFont(font);
-    paint_clues(painter, eaten_clues_col, m_downs, col_num, whole_clues_col, col_shift, puz_rect);
+    paint_clues(painter, eaten_clues_col, m_downs, col_num, whole_clues_col, col_gap, puz_rect);
 
     // images
     painter.drawImage(puz_rect, puzzle);
@@ -140,7 +140,7 @@ void Export::export_pdf()
 }
 
 void Export::paint_clues(QPainter &painter, QRect &eaten_clues_col, QVariantList clues_list,
-                         int &col_num, QRect &whole_clues_col, const int &col_shift, const QRect &puz_rect,
+                         int &col_num, QRect &whole_clues_col, const int &col_gap, const QRect &puz_rect,
                          int alignment)
 {
     foreach(QVariant raw_clue, clues_list) {
@@ -149,8 +149,8 @@ void Export::paint_clues(QPainter &painter, QRect &eaten_clues_col, QVariantList
         if(space_needed.bottom() > eaten_clues_col.bottom()) {
             col_num += 1;
             eaten_clues_col = whole_clues_col;
-            eaten_clues_col.setLeft(eaten_clues_col.right() + col_shift);
-            eaten_clues_col.setRight(eaten_clues_col.right() + col_shift + whole_clues_col.width());
+            eaten_clues_col.setLeft(eaten_clues_col.right() + col_gap);
+            eaten_clues_col.setRight(eaten_clues_col.right() + col_gap + whole_clues_col.width());
             if(col_num > 3) {
                 eaten_clues_col.setTop(puz_rect.bottom() + 300);
             }
