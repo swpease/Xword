@@ -72,7 +72,7 @@ Item {
                     Utils.assignNums(xGrid.rows, xGrid.columns)
             }
 
-            Square { }
+            Square { forExporting: gridContainer.forExporting }
         }
     }
 }

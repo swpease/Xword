@@ -116,7 +116,6 @@ ApplicationWindow {
                     ExportPDF.add_clues(formatted_acrosses, formatted_downs);  // adding clues
                     ExportPDF.add_metadata(text_data[1])  // adding metadata list
 
-
                     pdfXwordBlank.setDataForPdf(pdfXwordBlank.getDataForPdf());
                     pdfXwordAnswers.setDataForPdf(pdfXwordAnswers.getDataForPdf());
 
@@ -320,11 +319,7 @@ ApplicationWindow {
     }
 
     // THE ACTUAL CROSSWORD GRID
-    CrosswordGrid {
-        id: xWord
-
-        width: 700; height: 700;
-    }
+    CrosswordGrid { id: xWord }
 
     // FOR PDF EXPORTING
     CrosswordGrid {
@@ -338,6 +333,5 @@ ApplicationWindow {
         id: pdfXwordAnswers
 
         forExporting: true
-//        rotation: 180 Doesn't carry over to the QImage.
     }
 }

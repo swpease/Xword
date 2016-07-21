@@ -13,12 +13,13 @@ import "Utils.js" as Utils
 Rectangle {
     id: box
 
+    property bool forExporting: false
     property int constIndex: index
     property alias number: numberChild.text
     property alias letter: letterChild.text
 
-    width: root.width / xWord.columns
-    height: (root.height - root.extraHeight) / xWord.rows
+    width: forExporting == true ? (root.contentItem.implicitWidth / xWord.columns) : (root.width / xWord.columns);
+    height: forExporting == true ? (root.contentItem.implicitHeight / xWord.rows) : ((root.height - root.extraHeight) / xWord.rows);
     border { width: 1; color: Utils.BLACK }
     color: focus ? Utils.LIGHTBLUE : palette.window
 
