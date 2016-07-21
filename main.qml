@@ -13,6 +13,24 @@ ApplicationWindow {
     property string currentFileUrl
     property string formerFileUrl
 
+    function concat_clues(clues, nums) {
+        /* Combines the clue numbers and clues into an array of strings
+          for pdf exporting.
+          */
+        var formatted_clues = []
+        for(var i = 0; i < clues.length; i++) {
+            var text_concat = nums[i] + ".  " + clues[i];
+            formatted_clues.push(text_concat);
+        }
+        return formatted_clues;
+    }
+
+    function displayPdfLocation(fileName) {
+        // Slot connected to C++ Export export_completed(QVariant) signal.
+        pdfDialog.informativeText = fileName;
+        pdfDialog.open();
+    }
+
     function overwriteFile() {
         // Slot connected to C++ FIleIO fileExists() signal.
         replaceDialog.open();
@@ -48,8 +66,8 @@ ApplicationWindow {
     title: metadataForm.puzzleName == "" ? qsTr("Crossword Maker 5100") : metadataForm.puzzleName;
     color: palette.window
     contentItem {
-        implicitWidth: gridContainer.width
-        implicitHeight: gridContainer.height
+        implicitWidth: xWord.width
+        implicitHeight: xWord.height
         minimumWidth: 100
         minimumHeight: 100
     }
@@ -82,8 +100,40 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("Save As")
                 shortcut: StandardKey.SaveAs
-                enabled: xGrid.rows == -1 ? false : true;
+                enabled: xWord.rows == -1 ? false : true;
                 onTriggered: saveDialog.open();
+            }
+            MenuSeparator { }
+            MenuItem {
+                text: qsTr("Export to PDF")
+                shortcut: StandardKey.Print
+                onTriggered:  {
+                    var text_data = Utils.getCluesAndInfo();  // [clues, metadata, numbers]
+                    var across_clues = text_data[0][0]
+                    var down_clues = text_data[0][1]
+                    var across_nums = Utils.collectClueNums()[0]
+                    var down_nums = Utils.collectClueNums()[1]
+
+                    var formatted_acrosses = concat_clues(across_clues, across_nums);
+                    var formatted_downs = concat_clues(down_clues, down_nums);
+                    formatted_acrosses.unshift("ACROSS");
+                    formatted_downs.unshift("DOWN");
+
+                    ExportPDF.add_clues(formatted_acrosses, formatted_downs);  // adding clues
+                    ExportPDF.add_metadata(text_data[1])  // adding metadata list
+
+                    pdfXwordBlank.setDataForPdf(pdfXwordBlank.getDataForPdf());
+                    pdfXwordAnswers.setDataForPdf(pdfXwordAnswers.getDataForPdf());
+
+                    pdfXwordBlank.grabToImage(function(blankXword) {
+                        ExportPDF.add_image(blankXword.image);
+                    });
+                    pdfXwordAnswers.grabToImage(function(answersXword) {
+                        ExportPDF.add_image(answersXword.image);
+
+                        ExportPDF.export_pdf(xWord.columns);  // The actual printing function.
+                    });
+                }
             }
         }
         Menu {
@@ -141,6 +191,16 @@ ApplicationWindow {
         horizontalAlignment: Text.AlignHCenter
         font.pointSize: 24
         color: palette.windowText
+    }
+
+    // Exporting PDF
+    MessageDialog {
+        id: pdfDialog
+
+        title: "Crossword Successfully Exported"
+        text: "Your crossword was saved to the following location: "
+        icon: StandardIcon.Information
+        standardButtons: StandardButton.Ok
     }
 
     // FILE IO
@@ -234,7 +294,6 @@ ApplicationWindow {
 
     // CROSSWORD METADATA
     MetadataForm { id: metadataForm }
-//    MainForm { id: metadataForm }
 
     // MAKING THE CLUES FOR THE CROSSWORD
     Window {
@@ -276,39 +335,19 @@ ApplicationWindow {
     }
 
     // THE ACTUAL CROSSWORD GRID
-    Item {
-        id: gridContainer
+    CrosswordGrid { id: xWord }
 
-        visible: false
-        width: 700
-        height: 700
-        Component.onDestruction: {
-            if(root.stateChanged) {
-                //window about saving
-            }
-        }
+    // FOR PDF EXPORTING
+    CrosswordGrid {
+        id: pdfXwordBlank
 
-        Grid {
-            id: xGrid
-            // xGrid.rows and xGrid.columns set by:
-            //     (1) StartUpWindow.qml
-            //     (2) openDialog
+        forExporting: true
+        forFillingIn: true
+    }
 
-            property bool autoMoveDown: false
-            property string directionArrow: autoMoveDown ? "↓" : "→"
+    CrosswordGrid {
+        id: pdfXwordAnswers
 
-            Repeater {
-                id: gridRepeater
-
-                model: parent.columns * parent.rows
-                onItemAdded: {
-                    // Only perform after the grid has been assembled.
-                    if (index + 1 == xGrid.rows * xGrid.columns)
-                        Utils.assignNums(xGrid.rows, xGrid.columns)
-                }
-
-                Square { }
-            }
-        }
+        forExporting: true
     }
 }

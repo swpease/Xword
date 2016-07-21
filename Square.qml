@@ -13,16 +13,17 @@ import "Utils.js" as Utils
 Rectangle {
     id: box
 
+    property bool forExporting: false
     property int constIndex: index
     property alias number: numberChild.text
     property alias letter: letterChild.text
 
-    width: root.width / xGrid.columns
-    height: (root.height - root.extraHeight) / xGrid.rows
+    width: forExporting == true ? (root.contentItem.implicitWidth / xWord.columns) : (root.width / xWord.columns);
+    height: forExporting == true ? (root.contentItem.implicitHeight / xWord.rows) : ((root.height - root.extraHeight) / xWord.rows);
     border { width: 1; color: Utils.BLACK }
     color: focus ? Utils.LIGHTBLUE : palette.window
 
-    onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xGrid.directionArrow : directionChild.text = ""
+    onFocusChanged: (focus && !blackBoxToggle.checked) ? directionChild.text = xWord.directionArrow : directionChild.text = ""
     onStateChanged: {
         letter = "";
         root.stateChanged = true;
@@ -43,7 +44,7 @@ Rectangle {
         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) {
             if (blackBoxToggle.checked && state == "BLANKSPACE") {
                 Utils.blackWhite(box);
-                Utils.assignNums(xGrid.rows, xGrid.columns);
+                Utils.assignNums(xWord.rows, xWord.columns);
             } else {
                 letter = "";
             }
@@ -52,7 +53,7 @@ Rectangle {
         }
         if ((event.key == Qt.Key_Enter || event.key == Qt.Key_Return) && blackBoxToggle.checked && state == "") {
             Utils.blackWhite(box);
-            Utils.assignNums(xGrid.rows, xGrid.columns);
+            Utils.assignNums(xWord.rows, xWord.columns);
             root.stateChanged = true;
             event.accepted = true;
         }
@@ -100,15 +101,15 @@ Rectangle {
         onExited: { border.color = Utils.BLACK; border.width = 1 }
         onClicked: {
             if (parent.focus && !blackBoxToggle.checked) {
-                xGrid.autoMoveDown = !xGrid.autoMoveDown
-                directionChild.text = xGrid.directionArrow
+                xWord.autoMoveDown = !xWord.autoMoveDown
+                directionChild.text = xWord.directionArrow
             }
 
             parent.focus = true
 
             if (blackBoxToggle.checked) {
                 Utils.blackWhite(parent)
-                Utils.assignNums(xGrid.rows, xGrid.columns)
+                Utils.assignNums(xWord.rows, xWord.columns)
             }
         }
     }
@@ -117,7 +118,7 @@ Rectangle {
         target: blackBoxToggle
         onClicked: {
             if (color == Utils.LIGHTBLUE || color == Utils.DARKGREY) {
-                directionChild.text == "" ? directionChild.text = xGrid.directionArrow : directionChild.text = "";
+                directionChild.text == "" ? directionChild.text = xWord.directionArrow : directionChild.text = "";
             }
         }
     }

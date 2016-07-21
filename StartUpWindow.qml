@@ -21,12 +21,12 @@ Window {
 
     function newGrid() {
         // Reset the model to overwrite with a blank grid
-        xGrid.columns = 0;
-        xGrid.rows = 0;
+        xWord.columns = 0;
+        xWord.rows = 0;
         //
-        xGrid.columns = numWide.value
-        xGrid.rows = numHigh.value
-        gridContainer.visible = true
+        xWord.columns = numWide.value
+        xWord.rows = numHigh.value
+        xWord.visible = true
 
         root.currentFileUrl = "";
         root.stateChanged = true;

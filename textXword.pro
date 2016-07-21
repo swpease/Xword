@@ -3,7 +3,8 @@ TEMPLATE = app
 QT += qml quick widgets
 
 SOURCES += main.cpp \
-    fileio.cpp
+    fileio.cpp \
+    export.cpp
 
 RESOURCES += qml.qrc
 
@@ -16,5 +17,6 @@ include(deployment.pri)
 DISTFILES +=
 
 HEADERS += \
-    fileio.h
+    fileio.h \
+    export.h
 

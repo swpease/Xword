@@ -7,5 +7,6 @@
         <file>StartUpWindow.qml</file>
         <file>Square.qml</file>
         <file>MetadataForm.qml</file>
+        <file>CrosswordGrid.qml</file>
     </qresource>
 </RCC>
