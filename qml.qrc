@@ -8,5 +8,6 @@
         <file>Square.qml</file>
         <file>MetadataForm.qml</file>
         <file>CrosswordGrid.qml</file>
+        <file>xword.icns</file>
     </qresource>
 </RCC>

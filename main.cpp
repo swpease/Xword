@@ -9,6 +9,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    //    app.setWindowIcon(QIcon(":/xword.icns"));  // may be needed for non-osx deployment?
 
     FileIO fileIO;
     Export exportPDF;
