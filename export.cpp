@@ -72,7 +72,10 @@ void Export::export_pdf(int columns)
     QRect ans_rect(0, 0, (puzzle_width / 2), (puzzle_height / 2));
 
     //filepath
-    QString base_path = QDir::homePath();
+    QString raw_base_path = QCoreApplication::applicationDirPath();
+    QString partial_base_path = raw_base_path.split(".app")[0];  // don't want to put it in the app bundle
+    int last_backslash = partial_base_path.lastIndexOf("/");
+    QString base_path = partial_base_path.left(last_backslash);
     QString file_name = title == "" ? "/untitled.pdf" : "/" + title + ".pdf";
 
     // PAINTING //
