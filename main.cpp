@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("FileIO", &fileIO);
     engine.rootContext()->setContextProperty("ExportPDF", &exportPDF);
+    engine.rootContext()->setContextProperty("AppPath", FileIO::get_app_dir());
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     QObject *rootObject = engine.rootObjects().first();

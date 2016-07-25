@@ -13,6 +13,7 @@ public:
     explicit FileIO(QObject *parent = 0);
 
     Q_INVOKABLE QVariantList on_open(const QUrl &url);
+    static QString get_app_dir();
 
 signals:
     void fileExists();

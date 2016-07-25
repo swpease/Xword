@@ -208,7 +208,7 @@ ApplicationWindow {
         id: saveDialog
         selectExisting: false
         title: "Type a name for your file to save"
-        folder: shortcuts.home
+        folder: AppPath
         onFileUrlChanged: {
             root.formerFileUrl = root.currentFileUrl;
             root.currentFileUrl = fileUrl;
@@ -220,7 +220,7 @@ ApplicationWindow {
         id: openDialog
         title: "Select a file to open:"
         nameFilters: [ "Crossword files: (*.xwd)" ]
-        folder: shortcuts.home
+        folder: AppPath
         onFileUrlChanged: {
             if(root.stateChanged) {
                 saveBeforeOpenDialog.open();

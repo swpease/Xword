@@ -27,6 +27,16 @@ QVariantList FileIO::on_open(const QUrl &url)
     return data;
 }
 
+QString FileIO::get_app_dir()  // static , for osx
+{
+    QString raw_base_path = QCoreApplication::applicationDirPath();
+    QString partial_base_path = raw_base_path.split(".app")[0];
+    int last_backslash = partial_base_path.lastIndexOf("/");
+    QString base_path = partial_base_path.left(last_backslash);
+
+    return base_path;
+}
+
 void FileIO::on_saveAs(QUrl url, QVariantList data, bool overwrite)
 {
     QString fileName = url.toString();

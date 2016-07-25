@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QDebug>
 
+#include "fileio.h"
+
 Export::Export(QObject *parent) : QObject(parent)
 {
 
@@ -72,10 +74,7 @@ void Export::export_pdf(int columns)
     QRect ans_rect(0, 0, (puzzle_width / 2), (puzzle_height / 2));
 
     //filepath
-    QString raw_base_path = QCoreApplication::applicationDirPath();
-    QString partial_base_path = raw_base_path.split(".app")[0];  // don't want to put it in the app bundle
-    int last_backslash = partial_base_path.lastIndexOf("/");
-    QString base_path = partial_base_path.left(last_backslash);
+    QString base_path = FileIO::get_app_dir();
     QString file_name = title == "" ? "/untitled.pdf" : "/" + title + ".pdf";
 
     // PAINTING //
